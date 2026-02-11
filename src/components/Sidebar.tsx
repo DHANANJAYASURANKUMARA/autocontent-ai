@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 const navItems = [
-    { href: '/', icon: '📊', label: 'Dashboard' },
+    { href: '/dashboard', icon: '📊', label: 'Dashboard' },
     { href: '/studio', icon: '🎬', label: 'Content Studio' },
     { href: '/publish', icon: '🚀', label: 'Publishing' },
     { href: '/schedule', icon: '📅', label: 'Schedule' },
