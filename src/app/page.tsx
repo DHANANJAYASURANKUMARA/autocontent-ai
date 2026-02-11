@@ -31,91 +31,73 @@ export default function LandingPage() {
 
     return (
         <div className="landing-container" style={{ minHeight: '100vh', background: '#05050a', color: '#fff', overflowX: 'hidden' }}>
-            {/* Alive Background */}
-            <div className="alive-bg" />
+            {/* Professional Background */}
+            <div style={{ position: 'fixed', inset: 0, zIndex: -10, background: 'radial-gradient(circle at 50% -20%, #151525 0%, #05050a 100%)' }} />
 
             {/* Navigation */}
             <nav style={{
                 position: 'fixed',
                 top: 0,
                 width: '100%',
-                padding: scrolled ? '16px 0' : '32px 0',
+                padding: scrolled ? '16px 0' : '24px 0',
                 zIndex: 1000,
-                transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-                background: scrolled || mobileMenuOpen ? 'rgba(5, 5, 10, 0.8)' : 'transparent',
-                backdropFilter: scrolled || mobileMenuOpen ? 'blur(20px)' : 'none',
-                borderBottom: scrolled || mobileMenuOpen ? '1px solid rgba(255,255,255,0.08)' : 'none'
+                transition: 'all 0.4s ease',
+                background: scrolled || mobileMenuOpen ? 'rgba(5, 5, 10, 0.9)' : 'transparent',
+                backdropFilter: scrolled || mobileMenuOpen ? 'blur(10px)' : 'none',
+                borderBottom: scrolled || mobileMenuOpen ? '1px solid rgba(255,255,255,0.05)' : 'none'
             }}>
                 <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div className="animate-float-premium" style={{ width: 40, height: 40, background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', borderRadius: 12, display: 'grid', placeItems: 'center', fontWeight: 'bold', fontSize: 22, boxShadow: '0 0 30px rgba(108, 92, 231, 0.4)' }}>A</div>
-                        <span style={{ fontSize: 24, fontWeight: 900, letterSpacing: -1 }}>AutoContent <span style={{ color: 'var(--accent-primary)' }}>AI</span></span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 32, height: 32, background: 'var(--accent-primary)', borderRadius: 8, display: 'grid', placeItems: 'center', fontWeight: 'bold', fontSize: 18 }}>A</div>
+                        <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.5 }}>AutoContent <span style={{ color: 'var(--accent-primary)' }}>AI</span></span>
                     </div>
 
-                    <div className="desktop-nav" style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
-                        <a href="#features" style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)', transition: '0.3s', textTransform: 'uppercase', letterSpacing: 1.5 }}>Features</a>
-                        <a href="#pricing" style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)', transition: '0.3s', textTransform: 'uppercase', letterSpacing: 1.5 }}>Pricing</a>
-                        <Link href="/dashboard" className="btn btn-primary" style={{ padding: '12px 32px', borderRadius: 100, fontSize: 14, fontWeight: 700, boxShadow: '0 10px 30px rgba(108, 92, 231, 0.3)' }}>Launch Dashboard</Link>
+                    <div className="desktop-nav" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+                        <a href="#features" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)', transition: '0.2s' }}>Features</a>
+                        <a href="#pricing" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)', transition: '0.2s' }}>Pricing</a>
+                        <Link href="/dashboard" className="btn btn-primary" style={{ padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600 }}>Dashboard</Link>
                     </div>
 
-                    <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ color: '#fff', fontSize: 28 }}>
+                    <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ color: '#fff', fontSize: 24, background: 'transparent', border: 'none' }}>
                         {mobileMenuOpen ? '✕' : '☰'}
                     </button>
                 </div>
             </nav>
 
             {/* Hero Section */}
-            <section style={{ padding: '260px 0 120px', position: 'relative' }}>
+            <section style={{ padding: '180px 0 100px', position: 'relative' }}>
                 <div className="container" style={{ textAlign: 'center' }}>
-                    <div className="reveal active" style={{ maxWidth: 1000, margin: '0 auto' }}>
-                        <div className="animate-float-premium" style={{
-                            display: 'inline-block',
-                            padding: '10px 28px',
-                            borderRadius: 100,
-                            background: 'rgba(108, 92, 231, 0.1)',
-                            border: '1px solid rgba(108, 92, 231, 0.2)',
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: 'var(--accent-primary)',
-                            marginBottom: 40,
-                            textTransform: 'uppercase',
-                            letterSpacing: 3
-                        }}>
-                            ✨ The Future of Content is Autonomous
-                        </div>
-                        <h1 style={{ fontSize: 'clamp(48px, 10vw, 110px)', fontWeight: 950, lineHeight: 0.9, letterSpacing: -4, marginBottom: 40 }}>
-                            Generate Viral <br /> <span style={{ background: 'linear-gradient(180deg, #fff 30%, #666)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Content Instantly</span>
+                    <div className="reveal active" style={{ maxWidth: 850, margin: '0 auto' }}>
+                        <h1 style={{ fontSize: 'clamp(40px, 8vw, 84px)', fontWeight: 800, lineHeight: 1.1, letterSpacing: -2, marginBottom: 32 }}>
+                            Scale Your Content <br /> <span style={{ color: 'var(--accent-primary)' }}>Automatically</span>
                         </h1>
-                        <p style={{ fontSize: 'clamp(18px, 4vw, 24px)', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: 64, maxWidth: 800, margin: '0 auto 64px' }}>
-                            A high-performance engine designed for the next generation of creators. Automate your entire social presence with a single click.
+                        <p style={{ fontSize: 'clamp(18px, 3vw, 20px)', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 48, maxWidth: 650, margin: '0 auto 48px' }}>
+                            The professional platform for automated content generation and multi-platform distribution. Built for modern growth teams.
                         </p>
-                        <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <Link href="/dashboard" className="btn btn-primary" style={{ padding: '24px 64px', borderRadius: 100, fontSize: 18, fontWeight: 800, letterSpacing: -0.5 }}>Start Creating Free</Link>
-                            <button className="btn btn-secondary glass-card" style={{ padding: '24px 64px', borderRadius: 100, fontSize: 18, fontWeight: 800, border: '1px solid rgba(255,255,255,0.1)' }}>View Showcase</button>
+                        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Link href="/dashboard" className="btn btn-primary" style={{ padding: '16px 40px', borderRadius: 8, fontSize: 16, fontWeight: 600 }}>Get Started Free</Link>
+                            <button className="btn btn-secondary glass-card" style={{ padding: '16px 40px', borderRadius: 8, fontSize: 16, fontWeight: 600 }}>Live Demo</button>
                         </div>
                     </div>
 
-                    {/* Visualizer Preview */}
-                    <div className="reveal stagger-2" style={{
-                        marginTop: 120,
-                        padding: 2,
-                        background: 'linear-gradient(180deg, rgba(255,255,255,0.1), transparent)',
-                        borderRadius: 40,
-                        maxWidth: 1200,
-                        margin: '120px auto 0'
+                    {/* Dashboard Preview */}
+                    <div className="reveal stagger-1" style={{
+                        marginTop: 80,
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 20,
+                        overflow: 'hidden',
+                        boxShadow: '0 40px 100px rgba(0,0,0,0.5)'
                     }}>
-                        <div className="glass-card" style={{ padding: 'clamp(10px, 3vw, 30px)', borderRadius: 38 }}>
-                            <div style={{ width: '100%', height: 'clamp(300px, 60vh, 700px)', borderRadius: 24, background: '#080810', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', placeItems: 'center', position: 'relative', overflow: 'hidden' }}>
-                                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 60, background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', padding: '0 30px', gap: 14 }}>
-                                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f56' }} />
-                                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ffbd2e' }} />
-                                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#27c93f' }} />
-                                    <div style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(255,255,255,0.3)', fontWeight: 600, letterSpacing: 1 }}>AUTO_PIPELINE_V2.0</div>
-                                </div>
+                        <div style={{ width: '100%', height: 'clamp(300px, 50vh, 600px)', background: '#080810', display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ height: 40, background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 8 }}>
+                                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#333' }} />
+                                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#333' }} />
+                                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#333' }} />
+                            </div>
+                            <div style={{ flex: 1, display: 'grid', placeItems: 'center' }}>
                                 <div style={{ textAlign: 'center' }}>
-                                    <div className="animate-float-premium" style={{ fontSize: 64, marginBottom: 24 }}>🚀</div>
-                                    <h3 style={{ fontSize: 32, fontWeight: 800, marginBottom: 16 }}>Autonomous Video Engine</h3>
-                                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Processing real-time trends for viral deployment...</p>
+                                    <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Intelligent Dashboard</h3>
+                                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Unified control for all your content pipelines.</p>
                                 </div>
                             </div>
                         </div>
@@ -123,27 +105,27 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Features Grid */}
-            <section id="features" style={{ padding: '160px 0' }}>
+            {/* Features Section */}
+            <section id="features" style={{ padding: '120px 0', background: 'rgba(255,255,255,0.02)' }}>
                 <div className="container">
-                    <div className="reveal" style={{ textAlign: 'center', marginBottom: 120 }}>
-                        <h2 style={{ fontSize: 'clamp(40px, 8vw, 64px)', fontWeight: 950, letterSpacing: -3, marginBottom: 32 }}>Built for <span style={{ color: 'var(--accent-primary)' }}>Performance</span></h2>
-                        <p style={{ fontSize: 20, color: 'rgba(255,255,255,0.5)', maxWidth: 700, margin: '0 auto' }}>Scale without limits using our high-concurrency content distribution network.</p>
+                    <div className="reveal" style={{ textAlign: 'center', marginBottom: 80 }}>
+                        <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, marginBottom: 20 }}>Powerful Features</h2>
+                        <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.5)', maxWidth: 600, margin: '0 auto' }}>Everything you need to automate your social media presence at scale.</p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 40 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32 }}>
                         {[
-                            { title: 'Multi-Core AI', desc: 'Parallel processing across Gemini, GPT-4, and specialized local models.', icon: '🧠' },
-                            { title: 'Fast-Track Engine', desc: 'Zero-latency content generation from trend detection to final render.', icon: '⚡' },
-                            { title: 'Recursive Branding', desc: 'AI-driven visual consistency that evolves with your brand identity.', icon: '🎨' },
-                            { title: 'Stealth Distribution', desc: 'Bypass platform throttling with intelligent, human-like posting patterns.', icon: '🛰️' },
-                            { title: 'Neural Analytics', desc: 'Predictive growth modeling to identify tomorrow\'s viral meta today.', icon: '📈' },
-                            { title: 'Infinite Scaling', desc: 'Manage 100+ channels with the same effort as one single account.', icon: '🌌' }
+                            { title: 'AI Generation', desc: 'Powerful AI models generating high-quality scripts and visuals automatically.', icon: '🤖' },
+                            { title: 'Multi-Platform', desc: 'Seamlessly publish to TikTok, YouTube Shorts, and Instagram Reels.', icon: '📱' },
+                            { title: 'Smart Scheduling', desc: 'Post at the perfect time for each platform using automated analytics.', icon: '⏰' },
+                            { title: 'Brand Safety', desc: 'Automated content moderation and brand consistency checks.', icon: '🛡️' },
+                            { title: 'Growth Analytics', desc: 'Detailed insights into your performance across all connected channels.', icon: '📊' },
+                            { title: 'Cloud Rendering', desc: 'Fast, reliable video rendering in the cloud without slowing down your PC.', icon: '☁️' }
                         ].map((f, i) => (
-                            <div key={i} className={`glass-card reveal stagger-${(i % 3) + 1}`} style={{ padding: '64px 48px', borderRadius: 40 }}>
-                                <div style={{ fontSize: 56, marginBottom: 32 }}>{f.icon}</div>
-                                <h3 style={{ fontSize: 28, fontWeight: 800, marginBottom: 20 }}>{f.title}</h3>
-                                <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>{f.desc}</p>
+                            <div key={i} className={`glass-card reveal stagger-${(i % 3) + 1}`} style={{ padding: '40px', borderRadius: 16 }}>
+                                <div style={{ fontSize: 32, marginBottom: 24 }}>{f.icon}</div>
+                                <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>{f.title}</h3>
+                                <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>{f.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -151,7 +133,7 @@ export default function LandingPage() {
             </section>
 
             {/* Footer */}
-            <footer style={{ padding: '160px 0 80px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <footer style={{ padding: '100px 0 50px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <div className="container">
                     <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 100, marginBottom: 120 }}>
                         <div style={{ maxWidth: 450 }}>
