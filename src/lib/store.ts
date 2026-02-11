@@ -1,6 +1,4 @@
 // AutoContent AI — Database-backed Model Store (Prisma)
-import fs from 'fs';
-import path from 'path';
 import { getPrisma } from './prisma';
 import {
     User as PrismaUser,
@@ -12,8 +10,6 @@ import {
     SystemSettings as PrismaSettings,
     ScheduledPost as PrismaScheduled
 } from '@prisma/client';
-
-const DATA_FILE = path.join(process.cwd(), 'data.json');
 
 function uuidv4(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -103,92 +99,23 @@ class DataStore {
 
         this.initPromise = (async () => {
             if (process.env.NEXT_PHASE === 'phase-production-build') return;
-            await this.migrateIfNecessary();
+            await this.seedIfEmpty();
         })();
 
         return this.initPromise;
     }
 
-    private async migrateIfNecessary() {
+    private async seedIfEmpty() {
         const prisma = getPrisma();
         try {
             const userCount = await prisma.user.count();
-            if (userCount > 0) return; // Already initialized
+            if (userCount > 0) return; // Already has data
 
-            if (fs.existsSync(DATA_FILE)) {
-                console.log('Migrating initial data from JSON to SQLite...');
-                const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-
-                // Migrate Users
-                if (data.users) {
-                    for (const u of data.users) {
-                        await prisma.user.create({ data: { ...u, createdAt: u.createdAt ? new Date(u.createdAt) : undefined } });
-                    }
-                }
-
-                // Migrate Sessions
-                if (data.sessions) {
-                    for (const [id, userId] of Object.entries(data.sessions)) {
-                        await prisma.session.create({ data: { id, userId: userId as string } });
-                    }
-                }
-
-                // Migrate Content
-                if (data.content) {
-                    for (const c of data.content) {
-                        await prisma.contentItem.create({
-                            data: {
-                                ...c,
-                                hashtags: Array.isArray(c.hashtags) ? c.hashtags.join(',') : '',
-                                publishedAt: c.publishedAt ? new Date(c.publishedAt) : undefined,
-                                createdAt: c.createdAt ? new Date(c.createdAt) : undefined,
-                                updatedAt: c.updatedAt ? new Date(c.updatedAt) : undefined
-                            }
-                        });
-                    }
-                }
-
-                // Migrate Automation
-                if (data.automation) {
-                    await prisma.automationConfig.upsert({
-                        where: { id: 1 },
-                        update: {
-                            ...data.automation,
-                            niches: data.automation.niches?.join(','),
-                            platforms: data.automation.platforms?.join(','),
-                            types: data.automation.types?.join(','),
-                        },
-                        create: {
-                            ...data.automation,
-                            niches: data.automation.niches?.join(','),
-                            platforms: data.automation.platforms?.join(','),
-                            types: data.automation.types?.join(','),
-                        },
-                    });
-                }
-
-                // Migrate Settings
-                if (data.settings) {
-                    const prisma = getPrisma();
-                    await prisma.systemSettings.upsert({
-                        where: { id: 1 },
-                        update: {
-                            ...data.settings,
-                            targetKeywords: data.settings.targetKeywords?.join(','),
-                        },
-                        create: {
-                            ...data.settings,
-                            targetKeywords: data.settings.targetKeywords?.join(','),
-                        },
-                    });
-                }
-
-                console.log('Migration finished seamlessly.');
-            } else {
-                await this.seedDemoData();
-            }
+            // Seed demo user for first-time setup
+            await this.seedDemoData();
+            console.log('Seeded demo user (demo@example.com / password123)');
         } catch (err) {
-            console.error('Auto-migration failed:', err);
+            console.error('Database seed check failed:', err);
         }
     }
 
@@ -278,6 +205,7 @@ class DataStore {
         const user = await prisma.user.findFirst({ where: { email, password } });
         if (!user) return null;
         const session = await prisma.session.create({ data: { userId: user.id } });
+        console.log(`[LOGIN] Successful login for: ${email}`);
         return {
             user: { ...user, createdAt: user.createdAt.toISOString() },
             sessionId: session.id

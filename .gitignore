@@ -23,7 +23,9 @@ yarn-debug.log*
 ts-debug.log*
 
 # local env files
+.env
 .env*.local
+dev.db
 
 # vercel
 .vercel
