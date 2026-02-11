@@ -6,12 +6,16 @@ export async function POST(request: Request) {
         const { email, password, name } = await request.json();
 
         if (!email || !password || !name) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Please fill in all fields (Name, Email, Password)' }, { status: 400 });
+        }
+
+        if (password.length < 6) {
+            return NextResponse.json({ error: 'Password must be at least 6 characters long' }, { status: 400 });
         }
 
         const user = store.signup(email, password, name);
         if (!user) {
-            return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
+            return NextResponse.json({ error: 'An account with this email already exists' }, { status: 400 });
         }
 
         // Auto-login after signup

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
         const loginData = store.login(email, password);
         if (!loginData) {
-            return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+            return NextResponse.json({ error: 'Invalid email or password. Please try again.' }, { status: 401 });
         }
 
         const response = NextResponse.json({ user: loginData.user });

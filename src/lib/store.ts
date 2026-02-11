@@ -289,6 +289,54 @@ class DataStore {
         this.save();
         return newItem;
     }
+
+    /**
+     * Completely resets the store to a clean state.
+     * Use with caution.
+     */
+    reset() {
+        this.content = [];
+        this.scheduled = [];
+        this.accounts = [];
+        this.activities = [];
+        this.users = [];
+        this.sessions = {};
+        this.automation = {
+            enabled: false,
+            niches: ['Technology', 'Motivation'],
+            style: 'educational',
+            platforms: ['youtube', 'tiktok', 'facebook'],
+            types: ['video', 'shorts'],
+            frequency: 'daily',
+        };
+        this.settings = {
+            openaiKey: '',
+            youtubeKey: '',
+            tiktokKey: '',
+            facebookKey: '',
+            geminiKey: '',
+            contentTone: 'Professional & Engaging',
+            contentLength: 'medium',
+            brandName: 'AutoContent AI',
+            videoResolution: '1080p',
+            videoLanguage: 'English',
+            targetKeywords: [],
+            font: 'Inter',
+            primaryColor: '#0070f3',
+            backgroundStyle: 'solid',
+            aiProvider: 'gemini',
+            customBaseUrl: 'https://api.openai.com/v1',
+            customKey: '',
+            customModel: 'gpt-3.5-turbo',
+        };
+
+        // After clearing, re-seed with a fresh demo user if desired, 
+        // or just leave it truly empty for a "new beginning".
+        // The user specifically asked for "new beginning", so let's seed with a fresh timestamp.
+        const now = new Date();
+        this.addActivity('auth', 'System Reset', 'All data has been cleared for a new beginning.');
+        this.save();
+    }
 }
 
 const store = new DataStore();
