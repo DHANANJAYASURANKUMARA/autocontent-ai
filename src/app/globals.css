@@ -1169,9 +1169,10 @@ select.input {
 .alive-bg {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: -10;
   background: var(--bg-dark);
   overflow: hidden;
+  pointer-events: none;
 }
 
 .alive-bg::before,

@@ -43,13 +43,14 @@ export default function LandingPage() {
                 padding: scrolled ? '12px 0' : '24px 0',
                 zIndex: 1000,
                 transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-                background: scrolled || mobileMenuOpen ? 'rgba(10, 10, 18, 0.7)' : 'transparent',
+                background: scrolled || mobileMenuOpen ? 'rgba(10, 10, 18, 0.92)' : 'transparent',
                 backdropFilter: scrolled || mobileMenuOpen ? 'blur(24px)' : 'none',
-                borderBottom: scrolled || mobileMenuOpen ? '1px solid rgba(255,255,255,0.08)' : 'none'
+                borderBottom: scrolled || mobileMenuOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                boxShadow: scrolled ? '0 10px 30px rgba(0,0,0,0.3)' : 'none'
             }}>
                 <div className="nav-content" style={{ padding: '0 5%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div className="animate-float-subtle" style={{ width: 32, height: 32, background: 'var(--accent-primary)', borderRadius: 10, display: 'grid', placeItems: 'center', fontWeight: 'bold', fontSize: 18, boxShadow: 'var(--glow-purple)' }}>A</div>
+                        <div style={{ width: 32, height: 32, background: 'var(--accent-primary)', borderRadius: 10, display: 'grid', placeItems: 'center', fontWeight: 'bold', fontSize: 18, boxShadow: 'var(--glow-purple)' }}>A</div>
                         <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.5 }}>AutoContent <span style={{ color: 'var(--accent-primary)' }}>AI</span></span>
                     </div>
 
