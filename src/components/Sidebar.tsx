@@ -10,6 +10,7 @@ const navItems = [
     { href: '/publish', icon: '🚀', label: 'Publishing' },
     { href: '/schedule', icon: '📅', label: 'Schedule' },
     { href: '/automation', icon: '⚡', label: 'Automation' },
+    { href: '/database', icon: '🗄️', label: 'View DB' },
     { href: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 

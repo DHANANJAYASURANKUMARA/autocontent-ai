@@ -11,8 +11,10 @@ export async function POST(request: Request) {
 
         const loginData = await store.login(email, password);
         if (!loginData) {
+            console.warn(`[LOGIN] Failed attempt for email: ${email}`);
             return NextResponse.json({ error: 'Invalid email or password. Please try again.' }, { status: 401 });
         }
+        console.log(`[LOGIN] Successful login for: ${email}`);
 
         const response = NextResponse.json({ user: loginData.user });
         response.cookies.set('sessionId', loginData.sessionId, {

@@ -82,7 +82,7 @@ export interface SystemSettings {
 // Helper to map Prisma types to internal types
 const mapContent = (c: PrismaContent): ContentItem => ({
     ...c,
-    hashtags: c.hashtags ? c.hashtags.split(',') : [],
+    hashtags: c.hashtags ? c.hashtags.split(',').filter(Boolean) : [],
     publishedAt: c.publishedAt?.toISOString(),
     createdAt: c.createdAt.toISOString(),
     updatedAt: c.updatedAt.toISOString(),
@@ -92,11 +92,21 @@ const mapContent = (c: PrismaContent): ContentItem => ({
 });
 
 class DataStore {
+    private initPromise: Promise<void> | null = null;
+
     constructor() {
-        // Only run migration in dev or runtime, skip during Next.js build collection
-        if (process.env.NEXT_PHASE !== 'phase-production-build') {
-            this.migrateIfNecessary().catch(console.error);
-        }
+        // Initialization is triggered on first use
+    }
+
+    private async ensureInitialized() {
+        if (this.initPromise) return this.initPromise;
+
+        this.initPromise = (async () => {
+            if (process.env.NEXT_PHASE === 'phase-production-build') return;
+            await this.migrateIfNecessary();
+        })();
+
+        return this.initPromise;
     }
 
     private async migrateIfNecessary() {
@@ -175,7 +185,7 @@ class DataStore {
 
                 console.log('Migration finished seamlessly.');
             } else {
-                this.seedDemoData();
+                await this.seedDemoData();
             }
         } catch (err) {
             console.error('Auto-migration failed:', err);
@@ -197,18 +207,21 @@ class DataStore {
     }
 
     async getContent() {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const items = await prisma.contentItem.findMany({ orderBy: { createdAt: 'desc' } });
         return items.map(mapContent);
     }
 
     async getContentById(id: string) {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const item = await prisma.contentItem.findUnique({ where: { id } });
         return item ? mapContent(item) : null;
     }
 
     async addContent(item: Omit<ContentItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<ContentItem> {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const newItem = await prisma.contentItem.create({
             data: {
@@ -222,12 +235,14 @@ class DataStore {
     }
 
     async getPlatformAccounts() {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const accounts = await prisma.platformAccount.findMany({ orderBy: { platform: 'asc' } });
         return accounts.map((a: PrismaAccount) => ({ ...a, createdAt: a.createdAt.toISOString() }));
     }
 
     async updatePlatformAccount(platform: string, updates: Partial<PlatformAccount>) {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         await prisma.platformAccount.updateMany({
             where: { platform },
@@ -236,6 +251,7 @@ class DataStore {
     }
 
     async updateContent(id: string, updates: Partial<ContentItem>) {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const data: any = { ...updates };
         if (updates.hashtags) data.hashtags = updates.hashtags.join(',');
@@ -245,6 +261,7 @@ class DataStore {
     }
 
     async signup(email: string, password: string, name: string): Promise<User | null> {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         try {
             const user = await prisma.user.create({ data: { email, password, name } });
@@ -256,6 +273,7 @@ class DataStore {
     }
 
     async login(email: string, password: string): Promise<{ user: User; sessionId: string } | null> {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const user = await prisma.user.findFirst({ where: { email, password } });
         if (!user) return null;
@@ -267,11 +285,13 @@ class DataStore {
     }
 
     async logout(sessionId: string) {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         await prisma.session.delete({ where: { id: sessionId } }).catch(() => { });
     }
 
     async getUserBySession(sessionId: string): Promise<User | null> {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const session = await prisma.session.findUnique({ where: { id: sessionId }, include: { user: true } });
         if (!session) return null;
@@ -279,6 +299,7 @@ class DataStore {
     }
 
     async addActivity(type: PrismaActivity['type'] | any, title: string, description: string) {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         await prisma.activityLog.create({
             data: { type: type as string, title, description }
@@ -286,12 +307,14 @@ class DataStore {
     }
 
     async getActivities() {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const logs = await prisma.activityLog.findMany({ orderBy: { timestamp: 'desc' }, take: 50 });
         return logs.map((l: PrismaActivity) => ({ ...l, timestamp: l.timestamp.toISOString(), type: l.type as any }));
     }
 
     async getAutomationConfig(): Promise<AutomationConfig> {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         let a = await prisma.automationConfig.findUnique({ where: { id: 1 } });
         if (!a) {
@@ -299,15 +322,16 @@ class DataStore {
         }
         return {
             ...a,
-            niches: a.niches ? a.niches.split(',') : [],
-            platforms: a.platforms ? a.platforms.split(',') : [] as any,
-            types: a.types ? a.types.split(',') : [] as any,
+            niches: a.niches ? a.niches.split(',').filter(Boolean) : [],
+            platforms: a.platforms ? a.platforms.split(',').filter(Boolean) : [] as any,
+            types: a.types ? a.types.split(',').filter(Boolean) : [] as any,
             frequency: a.frequency as any,
             nextRun: a.nextRun?.toISOString(),
         };
     }
 
     async updateAutomationConfig(updates: Partial<AutomationConfig>) {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const data: any = { ...updates };
         if (updates.niches) data.niches = updates.niches.join(',');
@@ -323,6 +347,7 @@ class DataStore {
     }
 
     async getScheduledPosts() {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const items = await prisma.scheduledPost.findMany({ orderBy: { scheduledAt: 'asc' } });
         return items.map((s: PrismaScheduled) => ({
@@ -335,6 +360,7 @@ class DataStore {
     }
 
     async getSettings(): Promise<SystemSettings> {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         let s = await prisma.systemSettings.findUnique({ where: { id: 1 } });
         if (!s) {
@@ -345,11 +371,12 @@ class DataStore {
             contentLength: s.contentLength as any,
             aiProvider: s.aiProvider as any,
             videoResolution: s.videoResolution as any,
-            targetKeywords: s.targetKeywords ? s.targetKeywords.split(',') : [],
+            targetKeywords: s.targetKeywords ? s.targetKeywords.split(',').filter(Boolean) : [],
         } as SystemSettings;
     }
 
     async getStats() {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const totalContent = await prisma.contentItem.count();
         const published = await prisma.contentItem.count({ where: { status: 'published' } });
@@ -366,6 +393,7 @@ class DataStore {
     }
 
     async updateSettings(updates: Partial<SystemSettings>) {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const data: any = { ...updates };
         if (updates.targetKeywords) data.targetKeywords = updates.targetKeywords.join(',');
@@ -378,6 +406,7 @@ class DataStore {
     }
 
     async addSchedule(item: Omit<ScheduledPost, 'id' | 'createdAt' | 'status'> & { status?: ScheduledPost['status'] }) {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         const newItem = await prisma.scheduledPost.create({
             data: {
@@ -398,6 +427,7 @@ class DataStore {
     }
 
     async reset() {
+        await this.ensureInitialized();
         const prisma = getPrisma();
         await prisma.session.deleteMany();
         await prisma.user.deleteMany();

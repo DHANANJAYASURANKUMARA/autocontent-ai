@@ -9,13 +9,10 @@ declare global {
     var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
-export const getPrisma = (): PrismaClient => {
-    if (globalThis.prisma) return globalThis.prisma;
+const prisma = globalThis.prisma ?? prismaClientSingleton();
 
-    const client = new PrismaClient();
-    if (process.env.NODE_ENV !== 'production') globalThis.prisma = client;
-    return client;
+export const getPrisma = (): PrismaClient => {
+    return prisma;
 };
 
-// Initialized only when getPrisma() is actually called
-// We have replaced all occurrences in store.ts to use getPrisma()
+if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;
