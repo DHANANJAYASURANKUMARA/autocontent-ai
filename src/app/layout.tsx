@@ -15,7 +15,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="en">
             <body>
                 <div className="app-bg" />
-                {children}
+                <div className="app-layout">
+                    <Sidebar />
+                    <main className="main-content">
+                        {children}
+                    </main>
+                </div>
                 <div id="toast-root" className="toast-container" />
                 <div id="modal-root" />
             </body>
