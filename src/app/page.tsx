@@ -2,10 +2,16 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
     const observerRef = useRef<IntersectionObserver | null>(null);
 
     useEffect(() => {
@@ -28,6 +34,33 @@ export default function LandingPage() {
             observerRef.current?.disconnect();
         };
     }, []);
+
+    async function handleLogin(e: React.FormEvent) {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                router.push('/dashboard');
+                router.refresh();
+            } else {
+                setError(data.error || 'Login failed');
+            }
+        } catch (err) {
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
         <div className="landing-container" style={{ minHeight: '100vh', background: '#05050a', color: '#fff', overflowX: 'hidden' }}>
@@ -52,10 +85,10 @@ export default function LandingPage() {
                         <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.5 }}>AutoContent <span style={{ color: 'var(--accent-primary)' }}>AI</span></span>
                     </div>
 
-                    <div className="desktop-nav" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+                    <div className="desktop-nav" style={{ display: 'flex', gap: 32, alignItems: 'center', flexShrink: 0 }}>
                         <a href="#features" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)', transition: '0.2s' }}>Features</a>
                         <a href="#pricing" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)', transition: '0.2s' }}>Pricing</a>
-                        <Link href="/dashboard" className="btn btn-primary" style={{ padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600 }}>Dashboard</Link>
+                        <Link href="/signup" className="btn btn-secondary" style={{ padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600 }}>Create Account</Link>
                     </div>
 
                     <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ color: '#fff', fontSize: 24, background: 'transparent', border: 'none' }}>
@@ -64,41 +97,108 @@ export default function LandingPage() {
                 </div>
             </nav>
 
-            {/* Hero Section */}
+            {/* Hero Section Container */}
             <section style={{ padding: '180px 0 100px', position: 'relative' }}>
-                <div className="container" style={{ textAlign: 'center' }}>
-                    <div className="reveal active" style={{ maxWidth: 850, margin: '0 auto' }}>
-                        <h1 style={{ fontSize: 'clamp(40px, 8vw, 84px)', fontWeight: 800, lineHeight: 1.1, letterSpacing: -2, marginBottom: 32 }}>
+                <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '80px', alignItems: 'center' }}>
+                    {/* Left Side: Value Prop */}
+                    <div className="reveal active">
+                        <h1 style={{ fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: 800, lineHeight: 1.1, letterSpacing: -1.5, marginBottom: 24 }}>
                             Scale Your Content <br /> <span style={{ color: 'var(--accent-primary)' }}>Automatically</span>
                         </h1>
-                        <p style={{ fontSize: 'clamp(18px, 3vw, 20px)', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 48, maxWidth: 650, margin: '0 auto 48px' }}>
+                        <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 40, maxWidth: 500 }}>
                             The professional platform for automated content generation and multi-platform distribution. Built for modern growth teams.
                         </p>
-                        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <Link href="/dashboard" className="btn btn-primary" style={{ padding: '16px 40px', borderRadius: 8, fontSize: 16, fontWeight: 600 }}>Get Started Free</Link>
-                            <button className="btn btn-secondary glass-card" style={{ padding: '16px 40px', borderRadius: 8, fontSize: 16, fontWeight: 600 }}>Live Demo</button>
+                        <div style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
+                            <div>
+                                <div style={{ fontSize: 24, fontWeight: 800 }}>10M+</div>
+                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>Views Generated</div>
+                            </div>
+                            <div style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.1)' }} />
+                            <div>
+                                <div style={{ fontSize: 24, fontWeight: 800 }}>50k+</div>
+                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>Active Pipelines</div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Dashboard Preview */}
-                    <div className="reveal stagger-1" style={{
-                        marginTop: 80,
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 20,
-                        overflow: 'hidden',
-                        boxShadow: '0 40px 100px rgba(0,0,0,0.5)'
-                    }}>
-                        <div style={{ width: '100%', height: 'clamp(300px, 50vh, 600px)', background: '#080810', display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ height: 40, background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 8 }}>
-                                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#333' }} />
-                                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#333' }} />
-                                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#333' }} />
+                    {/* Right Side: Login Portal */}
+                    <div className="reveal stagger-1">
+                        <div className="glass-card" style={{ padding: '40px', borderRadius: 24, border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div style={{ marginBottom: 32 }}>
+                                <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Welcome back</h2>
+                                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>Enter your details to access your dashboard</p>
                             </div>
-                            <div style={{ flex: 1, display: 'grid', placeItems: 'center' }}>
-                                <div style={{ textAlign: 'center' }}>
-                                    <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Intelligent Dashboard</h3>
-                                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Unified control for all your content pipelines.</p>
+
+                            {error && (
+                                <div style={{
+                                    padding: '12px',
+                                    background: 'rgba(255, 50, 50, 0.1)',
+                                    borderRadius: 12,
+                                    fontSize: 13,
+                                    color: '#ff4d4d',
+                                    border: '1px solid rgba(255, 50, 50, 0.2)',
+                                    marginBottom: 20
+                                }}>
+                                    {error}
                                 </div>
+                            )}
+
+                            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    <label style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>Email Address</label>
+                                    <input
+                                        type="email"
+                                        placeholder="name@company.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        style={{
+                                            background: 'rgba(255,255,255,0.03)',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            padding: '14px 16px',
+                                            borderRadius: 12,
+                                            color: '#fff',
+                                            fontSize: 14,
+                                            transition: '0.2s'
+                                        }}
+                                        className="input-focus"
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <label style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>Password</label>
+                                        <a href="#" style={{ fontSize: 12, color: 'var(--accent-primary)', fontWeight: 600 }}>Forgot?</a>
+                                    </div>
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        style={{
+                                            background: 'rgba(255,255,255,0.03)',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            padding: '14px 16px',
+                                            borderRadius: 12,
+                                            color: '#fff',
+                                            fontSize: 14,
+                                            transition: '0.2s'
+                                        }}
+                                        className="input-focus"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    disabled={loading}
+                                    style={{ padding: '14px', borderRadius: 12, fontWeight: 700, fontSize: 15, marginTop: 10, position: 'relative' }}
+                                >
+                                    {loading ? <div className="spinner" style={{ width: 18, height: 18 }} /> : 'Log in to Platform'}
+                                </button>
+                            </form>
+
+                            <div style={{ marginTop: 32, textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+                                New to AutoContent? <Link href="/signup" style={{ color: '#fff', fontWeight: 600 }}>Create an account</Link>
                             </div>
                         </div>
                     </div>
