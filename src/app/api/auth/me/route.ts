@@ -9,7 +9,7 @@ export async function GET() {
         return NextResponse.json({ user: null });
     }
 
-    const user = store.getUserBySession(sessionId);
+    const user = await store.getUserBySession(sessionId);
     if (!user) {
         return NextResponse.json({ user: null });
     }

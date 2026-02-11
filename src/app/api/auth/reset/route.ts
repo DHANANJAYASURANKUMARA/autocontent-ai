@@ -6,7 +6,7 @@ export async function POST(request: Request) {
         // Simple security check: only allow reset in development or with a specific header/key if needed
         // For now, since the user is asking for it, we'll implement it.
 
-        store.reset();
+        await store.reset();
 
         return NextResponse.json({ message: 'Store reset successfully. New beginning started.' });
     } catch (error) {

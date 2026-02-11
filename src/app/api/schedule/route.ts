@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import store from '@/lib/store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
+    const scheduled = await store.getScheduledPosts();
+    const content = await store.getContent();
+
     return NextResponse.json({
-        scheduled: store.scheduled.map(s => ({
+        scheduled: scheduled.map((s: any) => ({
             ...s,
-            content: store.content.find(c => c.id === s.contentId),
+            content: content.find((c: any) => c.id === s.contentId),
         })),
     });
 }
@@ -19,15 +24,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const post = store.addSchedule({
+        const post = await store.addSchedule({
             contentId,
             platform,
             scheduledAt,
             status: 'pending',
-        });
+        } as any);
 
         return NextResponse.json({ scheduled: post });
     } catch (error) {
+        console.error('Schedule API Error:', error);
         return NextResponse.json({ error: 'Failed to schedule' }, { status: 500 });
     }
 }

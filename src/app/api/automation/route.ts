@@ -1,42 +1,45 @@
 import { NextResponse } from 'next/server';
 import store from '@/lib/store';
+
+export const dynamic = 'force-dynamic';
 import { generateContent } from '@/lib/ai-engine';
 
 export async function GET() {
-    return NextResponse.json({ automation: store.automation });
+    const automation = await store.getAutomationConfig();
+    return NextResponse.json({ automation });
 }
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { action } = body;
+        const automation = await store.getAutomationConfig();
 
         if (action === 'toggle') {
-            store.automation.enabled = !store.automation.enabled;
-            store.addActivity(
+            const newEnabled = !automation.enabled;
+            await store.updateAutomationConfig({ enabled: newEnabled });
+            await store.addActivity(
                 'automation',
-                store.automation.enabled ? 'Automation Enabled' : 'Automation Disabled',
-                store.automation.enabled ? 'Full pipeline automation is now running' : 'Automation has been paused'
+                newEnabled ? 'Automation Enabled' : 'Automation Disabled',
+                newEnabled ? 'Full pipeline automation is now running' : 'Automation has been paused'
             );
-            return NextResponse.json({ automation: store.automation });
+            const updated = await store.getAutomationConfig();
+            return NextResponse.json({ automation: updated });
         }
 
         if (action === 'update') {
             const { niches, style, platforms, types, frequency } = body;
-            if (niches) store.automation.niches = niches;
-            if (style) store.automation.style = style;
-            if (platforms) store.automation.platforms = platforms;
-            if (types) store.automation.types = types;
-            if (frequency) store.automation.frequency = frequency;
-            return NextResponse.json({ automation: store.automation });
+            await store.updateAutomationConfig({ niches, style, platforms, types, frequency });
+            const updated = await store.getAutomationConfig();
+            return NextResponse.json({ automation: updated });
         }
 
         if (action === 'run') {
-            const niche = store.automation.niches[Math.floor(Math.random() * store.automation.niches.length)] || 'Technology';
-            const type = store.automation.types[Math.floor(Math.random() * store.automation.types.length)] || 'video';
-            const platform = store.automation.platforms[Math.floor(Math.random() * store.automation.platforms.length)] || 'youtube';
+            const niche = automation.niches[Math.floor(Math.random() * automation.niches.length)] || 'Technology';
+            const type = automation.types[Math.floor(Math.random() * automation.types.length)] || 'video';
+            const platform = automation.platforms[Math.floor(Math.random() * automation.platforms.length)] || 'youtube';
 
-            const settings = store.getSettings();
+            const settings = await store.getSettings();
 
             // Validate based on provider
             const provider = settings.aiProvider || 'gemini';
@@ -65,7 +68,7 @@ export async function POST(request: Request) {
             // Pass "Customize Everything" preferences to AI Engine in automation run
             const generated = await generateContent({
                 niche,
-                style: store.automation.style,
+                style: automation.style,
                 platform: 'all',
                 type,
                 customTopic: topic,
@@ -87,22 +90,22 @@ export async function POST(request: Request) {
                 customModel: settings.customModel,
             });
 
-            const item = store.addContent({
+            const item = await store.addContent({
                 title: generated.title,
                 description: generated.description,
                 script: generated.script,
                 hashtags: generated.hashtags,
-                imageUrl: generated.imageUrl,
+                imageUrl: generated.imageUrl || null,
                 niche,
-                style: store.automation.style,
+                style: automation.style,
                 platform,
                 type,
                 status: 'ready',
-            });
+            } as any);
 
-            store.addActivity('automation', 'Pipeline Run Complete', `Generated ${type.toUpperCase()} "${item.title}" with custom tone & branding.`);
+            await store.addActivity('automation', 'Pipeline Run Complete', `Generated ${type.toUpperCase()} "${item.title}" with custom tone & branding.`);
 
-            return NextResponse.json({ automation: store.automation, generated: item });
+            return NextResponse.json({ automation: await store.getAutomationConfig(), generated: item });
         }
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

@@ -1,6 +1,17 @@
-// AutoContent AI — Persistent Model Store
+// AutoContent AI — Database-backed Model Store (Prisma)
 import fs from 'fs';
 import path from 'path';
+import { getPrisma } from './prisma';
+import {
+    User as PrismaUser,
+    Session as PrismaSession,
+    ContentItem as PrismaContent,
+    PlatformAccount as PrismaAccount,
+    ActivityLog as PrismaActivity,
+    AutomationConfig as PrismaAutomation,
+    SystemSettings as PrismaSettings,
+    ScheduledPost as PrismaScheduled
+} from '@prisma/client';
 
 const DATA_FILE = path.join(process.cwd(), 'data.json');
 
@@ -12,60 +23,28 @@ function uuidv4(): string {
     });
 }
 
-// ---- Types ----
-export interface ContentItem {
-    id: string;
-    title: string;
-    description: string;
-    script: string;
+// ---- Types (Re-exported/Compatible) ----
+export interface ContentItem extends Omit<PrismaContent, 'hashtags' | 'publishedAt' | 'createdAt' | 'updatedAt'> {
     hashtags: string[];
-    niche: string;
-    style: string;
-    type: 'video' | 'photo' | 'shorts' | 'text';
-    platform: 'youtube' | 'tiktok' | 'facebook' | 'all';
-    status: 'draft' | 'generating' | 'ready' | 'publishing' | 'published' | 'failed';
-    imageUrl?: string;
-    videoUrl?: string;
-    thumbnailUrl?: string;
-    publishedUrl?: string;
     publishedAt?: string;
     createdAt: string;
     updatedAt: string;
 }
 
-export interface ScheduledPost {
-    id: string;
-    contentId: string;
-    platform: 'youtube' | 'tiktok' | 'facebook';
+export interface ScheduledPost extends Omit<PrismaScheduled, 'scheduledAt' | 'createdAt'> {
     scheduledAt: string;
-    status: 'pending' | 'publishing' | 'published' | 'failed';
-    publishedUrl?: string;
-    error?: string;
     createdAt: string;
 }
 
-export interface PlatformAccount {
-    id: string;
-    platform: 'youtube' | 'tiktok' | 'facebook';
-    name: string;
-    connected: boolean;
-    apiKey?: string;
+export interface PlatformAccount extends Omit<PrismaAccount, 'createdAt'> {
     createdAt: string;
 }
 
-export interface ActivityLog {
-    id: string;
-    type: 'generate' | 'publish' | 'schedule' | 'error' | 'automation' | 'auth';
-    title: string;
-    description: string;
+export interface ActivityLog extends Omit<PrismaActivity, 'timestamp'> {
     timestamp: string;
 }
 
-export interface User {
-    id: string;
-    email: string;
-    password?: string;
-    name: string;
+export interface User extends Omit<PrismaUser, 'createdAt'> {
     createdAt: string;
 }
 
@@ -85,257 +64,351 @@ export interface SystemSettings {
     tiktokKey: string;
     facebookKey: string;
     geminiKey: string;
-    // New "Customize Everything" settings
     contentTone: string;
     contentLength: 'short' | 'medium' | 'long';
     brandName: string;
     videoResolution: '1080p' | '4k' | 'vertical';
     videoLanguage: string;
     targetKeywords: string[];
-    // Visual Branding
     font: string;
     primaryColor: string;
     backgroundStyle: string;
-    // AI Provider
     aiProvider: 'gemini' | 'openai' | 'custom';
-    // openaiKey is already defined above
     customBaseUrl: string;
     customKey: string;
     customModel: string;
 }
 
-// ---- Store ----
+// Helper to map Prisma types to internal types
+const mapContent = (c: PrismaContent): ContentItem => ({
+    ...c,
+    hashtags: c.hashtags ? c.hashtags.split(',') : [],
+    publishedAt: c.publishedAt?.toISOString(),
+    createdAt: c.createdAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
+    type: c.type as any,
+    platform: c.platform as any,
+    status: c.status as any,
+});
+
 class DataStore {
-    content: ContentItem[] = [];
-    scheduled: ScheduledPost[] = [];
-    accounts: PlatformAccount[] = [];
-    activities: ActivityLog[] = [];
-    users: User[] = [];
-    sessions: Record<string, string> = {};
-    automation: AutomationConfig = {
-        enabled: false,
-        niches: ['Technology', 'Motivation'],
-        style: 'educational',
-        platforms: ['youtube', 'tiktok', 'facebook'],
-        types: ['video', 'shorts'],
-        frequency: 'daily',
-    };
-    settings: SystemSettings = {
-        openaiKey: '',
-        youtubeKey: '',
-        tiktokKey: '',
-        facebookKey: '',
-        geminiKey: '',
-        contentTone: 'Professional & Engaging',
-        contentLength: 'medium',
-        brandName: 'AutoContent AI',
-        videoResolution: '1080p',
-        videoLanguage: 'English',
-        targetKeywords: [],
-        font: 'Inter',
-        primaryColor: '#0070f3',
-        backgroundStyle: 'solid',
-        aiProvider: 'gemini',
-        customBaseUrl: 'https://api.openai.com/v1',
-        customKey: '',
-        customModel: 'gpt-3.5-turbo',
-    };
-
     constructor() {
-        this.load();
-    }
-
-    private save() {
-        try {
-            const data = {
-                content: this.content,
-                scheduled: this.scheduled,
-                accounts: this.accounts,
-                activities: this.activities,
-                users: this.users,
-                sessions: this.sessions,
-                automation: this.automation,
-                settings: this.settings,
-            };
-            fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-        } catch (err) {
-            console.error('Failed to save data:', err);
+        // Only run migration in dev or runtime, skip during Next.js build collection
+        if (process.env.NEXT_PHASE !== 'phase-production-build') {
+            this.migrateIfNecessary().catch(console.error);
         }
     }
 
-    private load() {
+    private async migrateIfNecessary() {
+        const prisma = getPrisma();
         try {
+            const userCount = await prisma.user.count();
+            if (userCount > 0) return; // Already initialized
+
             if (fs.existsSync(DATA_FILE)) {
+                console.log('Migrating initial data from JSON to SQLite...');
                 const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-                this.content = data.content || [];
-                this.scheduled = data.scheduled || [];
-                this.accounts = data.accounts || [];
-                this.activities = data.activities || [];
-                this.users = data.users || [];
-                this.sessions = data.sessions || {};
-                this.automation = data.automation || this.automation;
-                this.settings = { ...this.settings, ...(data.settings || {}) };
-                if (!this.automation.types) this.automation.types = ['video', 'shorts'];
+
+                // Migrate Users
+                if (data.users) {
+                    for (const u of data.users) {
+                        await prisma.user.create({ data: { ...u, createdAt: u.createdAt ? new Date(u.createdAt) : undefined } });
+                    }
+                }
+
+                // Migrate Sessions
+                if (data.sessions) {
+                    for (const [id, userId] of Object.entries(data.sessions)) {
+                        await prisma.session.create({ data: { id, userId: userId as string } });
+                    }
+                }
+
+                // Migrate Content
+                if (data.content) {
+                    for (const c of data.content) {
+                        await prisma.contentItem.create({
+                            data: {
+                                ...c,
+                                hashtags: Array.isArray(c.hashtags) ? c.hashtags.join(',') : '',
+                                publishedAt: c.publishedAt ? new Date(c.publishedAt) : undefined,
+                                createdAt: c.createdAt ? new Date(c.createdAt) : undefined,
+                                updatedAt: c.updatedAt ? new Date(c.updatedAt) : undefined
+                            }
+                        });
+                    }
+                }
+
+                // Migrate Automation
+                if (data.automation) {
+                    await prisma.automationConfig.upsert({
+                        where: { id: 1 },
+                        update: {
+                            ...data.automation,
+                            niches: data.automation.niches?.join(','),
+                            platforms: data.automation.platforms?.join(','),
+                            types: data.automation.types?.join(','),
+                        },
+                        create: {
+                            ...data.automation,
+                            niches: data.automation.niches?.join(','),
+                            platforms: data.automation.platforms?.join(','),
+                            types: data.automation.types?.join(','),
+                        },
+                    });
+                }
+
+                // Migrate Settings
+                if (data.settings) {
+                    const prisma = getPrisma();
+                    await prisma.systemSettings.upsert({
+                        where: { id: 1 },
+                        update: {
+                            ...data.settings,
+                            targetKeywords: data.settings.targetKeywords?.join(','),
+                        },
+                        create: {
+                            ...data.settings,
+                            targetKeywords: data.settings.targetKeywords?.join(','),
+                        },
+                    });
+                }
+
+                console.log('Migration finished seamlessly.');
             } else {
                 this.seedDemoData();
-                this.save();
             }
         } catch (err) {
-            console.error('Failed to load data:', err);
-            this.seedDemoData();
+            console.error('Auto-migration failed:', err);
         }
     }
 
-    private seedDemoData() {
-        const now = new Date();
-        this.users = [
-            {
-                id: uuidv4(),
+    private async seedDemoData() {
+        const prisma = getPrisma();
+        const userId = uuidv4();
+        await prisma.user.create({
+            data: {
+                id: userId,
                 email: 'demo@example.com',
                 password: 'password123',
                 name: 'Demo User',
-                createdAt: now.toISOString(),
-            },
-        ];
-        this.sessions['demo-session-id'] = this.users[0].id;
-
-        this.accounts = [
-            { id: uuidv4(), platform: 'youtube', name: 'Tech Master YT', connected: true, createdAt: now.toISOString() },
-            { id: uuidv4(), platform: 'tiktok', name: 'Daily Motivation TT', connected: true, createdAt: now.toISOString() },
-            { id: uuidv4(), platform: 'facebook', name: 'AutoContent FB Page', connected: false, createdAt: now.toISOString() },
-        ];
+            }
+        });
+        await prisma.session.create({ data: { id: 'demo-session-id', userId } });
     }
 
-    getContent() { return this.content; }
-    addContent(item: Omit<ContentItem, 'id' | 'createdAt' | 'updatedAt'>): ContentItem {
-        const now = new Date().toISOString();
-        const newItem: ContentItem = { ...item, id: uuidv4(), createdAt: now, updatedAt: now };
-        this.content.unshift(newItem);
-        this.addActivity('generate', 'Content Generated', `${newItem.type.toUpperCase()}: "${newItem.title}"`);
-        this.save();
-        return newItem;
+    async getContent() {
+        const prisma = getPrisma();
+        const items = await prisma.contentItem.findMany({ orderBy: { createdAt: 'desc' } });
+        return items.map(mapContent);
     }
 
-    updateContent(id: string, updates: Partial<ContentItem>) {
-        const index = this.content.findIndex(c => c.id === id);
-        if (index !== -1) {
-            this.content[index] = { ...this.content[index], ...updates, updatedAt: new Date().toISOString() };
-            this.save();
+    async getContentById(id: string) {
+        const prisma = getPrisma();
+        const item = await prisma.contentItem.findUnique({ where: { id } });
+        return item ? mapContent(item) : null;
+    }
+
+    async addContent(item: Omit<ContentItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<ContentItem> {
+        const prisma = getPrisma();
+        const newItem = await prisma.contentItem.create({
+            data: {
+                ...item,
+                hashtags: item.hashtags.join(','),
+                publishedAt: item.publishedAt ? new Date(item.publishedAt) : undefined,
+            }
+        });
+        await this.addActivity('generate', 'Content Generated', `${newItem.type.toUpperCase()}: "${newItem.title}"`);
+        return mapContent(newItem);
+    }
+
+    async getPlatformAccounts() {
+        const prisma = getPrisma();
+        const accounts = await prisma.platformAccount.findMany({ orderBy: { platform: 'asc' } });
+        return accounts.map((a: PrismaAccount) => ({ ...a, createdAt: a.createdAt.toISOString() }));
+    }
+
+    async updatePlatformAccount(platform: string, updates: Partial<PlatformAccount>) {
+        const prisma = getPrisma();
+        await prisma.platformAccount.updateMany({
+            where: { platform },
+            data: updates as any
+        });
+    }
+
+    async updateContent(id: string, updates: Partial<ContentItem>) {
+        const prisma = getPrisma();
+        const data: any = { ...updates };
+        if (updates.hashtags) data.hashtags = updates.hashtags.join(',');
+        if (updates.publishedAt) data.publishedAt = new Date(updates.publishedAt);
+
+        await prisma.contentItem.update({ where: { id }, data });
+    }
+
+    async signup(email: string, password: string, name: string): Promise<User | null> {
+        const prisma = getPrisma();
+        try {
+            const user = await prisma.user.create({ data: { email, password, name } });
+            await this.addActivity('auth', 'New User Sign Up', `User ${email} created an account`);
+            return { ...user, createdAt: user.createdAt.toISOString() };
+        } catch (e) {
+            return null;
         }
     }
 
-    signup(email: string, password: string, name: string): User | null {
-        if (this.users.find(u => u.email === email)) return null;
-        const user: User = { id: uuidv4(), email, password, name, createdAt: new Date().toISOString() };
-        this.users.push(user);
-        this.addActivity('auth', 'New User Sign Up', `User ${email} created an account`);
-        this.save();
-        return user;
-    }
-
-    login(email: string, password: string): { user: User; sessionId: string } | null {
-        const user = this.users.find(u => u.email === email && u.password === password);
+    async login(email: string, password: string): Promise<{ user: User; sessionId: string } | null> {
+        const prisma = getPrisma();
+        const user = await prisma.user.findFirst({ where: { email, password } });
         if (!user) return null;
-        const sessionId = uuidv4();
-        this.sessions[sessionId] = user.id;
-        this.save();
-        return { user, sessionId };
-    }
-
-    logout(sessionId: string) {
-        delete this.sessions[sessionId];
-        this.save();
-    }
-
-    getUserBySession(sessionId: string): User | null {
-        const userId = this.sessions[sessionId];
-        return this.users.find(u => u.id === userId) || null;
-    }
-
-    addActivity(type: ActivityLog['type'], title: string, description: string) {
-        const activity: ActivityLog = { id: uuidv4(), type, title, description, timestamp: new Date().toISOString() };
-        this.activities.unshift(activity);
-        if (this.activities.length > 50) this.activities = this.activities.slice(0, 50);
-        this.save();
-    }
-
-    getActivities() { return this.activities; }
-    getSettings() { return this.settings; }
-
-    getStats() {
+        const session = await prisma.session.create({ data: { userId: user.id } });
         return {
-            totalContent: this.content.length,
-            published: this.content.filter(c => c.status === 'published').length,
-            scheduled: this.scheduled.filter(s => s.status === 'pending').length,
-            generating: this.content.filter(c => c.status === 'generating').length,
-            successRate: this.content.length > 0 ? Math.round((this.content.filter(c => c.status === 'published').length / this.content.length) * 100) : 0,
+            user: { ...user, createdAt: user.createdAt.toISOString() },
+            sessionId: session.id
         };
     }
 
-    updateSettings(updates: Partial<SystemSettings>) {
-        this.settings = { ...this.settings, ...updates };
-        this.save();
+    async logout(sessionId: string) {
+        const prisma = getPrisma();
+        await prisma.session.delete({ where: { id: sessionId } }).catch(() => { });
     }
 
-    addSchedule(item: Omit<ScheduledPost, 'id' | 'createdAt' | 'status'> & { status?: ScheduledPost['status'] }) {
-        const newItem: ScheduledPost = {
-            id: uuidv4(),
-            createdAt: new Date().toISOString(),
-            status: 'pending',
-            ...item
-        };
-        this.scheduled.push(newItem);
-        this.addActivity('schedule', 'Post Scheduled', `Scheduled for ${newItem.platform} at ${new Date(newItem.scheduledAt).toLocaleString()}`);
-        this.save();
-        return newItem;
+    async getUserBySession(sessionId: string): Promise<User | null> {
+        const prisma = getPrisma();
+        const session = await prisma.session.findUnique({ where: { id: sessionId }, include: { user: true } });
+        if (!session) return null;
+        return { ...session.user, createdAt: session.user.createdAt.toISOString() };
     }
 
-    /**
-     * Completely resets the store to a clean state.
-     * Use with caution.
-     */
-    reset() {
-        this.content = [];
-        this.scheduled = [];
-        this.accounts = [];
-        this.activities = [];
-        this.users = [];
-        this.sessions = {};
-        this.automation = {
-            enabled: false,
-            niches: ['Technology', 'Motivation'],
-            style: 'educational',
-            platforms: ['youtube', 'tiktok', 'facebook'],
-            types: ['video', 'shorts'],
-            frequency: 'daily',
-        };
-        this.settings = {
-            openaiKey: '',
-            youtubeKey: '',
-            tiktokKey: '',
-            facebookKey: '',
-            geminiKey: '',
-            contentTone: 'Professional & Engaging',
-            contentLength: 'medium',
-            brandName: 'AutoContent AI',
-            videoResolution: '1080p',
-            videoLanguage: 'English',
-            targetKeywords: [],
-            font: 'Inter',
-            primaryColor: '#0070f3',
-            backgroundStyle: 'solid',
-            aiProvider: 'gemini',
-            customBaseUrl: 'https://api.openai.com/v1',
-            customKey: '',
-            customModel: 'gpt-3.5-turbo',
-        };
+    async addActivity(type: PrismaActivity['type'] | any, title: string, description: string) {
+        const prisma = getPrisma();
+        await prisma.activityLog.create({
+            data: { type: type as string, title, description }
+        });
+    }
 
-        // After clearing, re-seed with a fresh demo user if desired, 
-        // or just leave it truly empty for a "new beginning".
-        // The user specifically asked for "new beginning", so let's seed with a fresh timestamp.
-        const now = new Date();
-        this.addActivity('auth', 'System Reset', 'All data has been cleared for a new beginning.');
-        this.save();
+    async getActivities() {
+        const prisma = getPrisma();
+        const logs = await prisma.activityLog.findMany({ orderBy: { timestamp: 'desc' }, take: 50 });
+        return logs.map((l: PrismaActivity) => ({ ...l, timestamp: l.timestamp.toISOString(), type: l.type as any }));
+    }
+
+    async getAutomationConfig(): Promise<AutomationConfig> {
+        const prisma = getPrisma();
+        let a = await prisma.automationConfig.findUnique({ where: { id: 1 } });
+        if (!a) {
+            a = await prisma.automationConfig.create({ data: { id: 1, niches: 'Technology,Motivation', platforms: 'youtube,tiktok,facebook', types: 'video,shorts' } });
+        }
+        return {
+            ...a,
+            niches: a.niches ? a.niches.split(',') : [],
+            platforms: a.platforms ? a.platforms.split(',') : [] as any,
+            types: a.types ? a.types.split(',') : [] as any,
+            frequency: a.frequency as any,
+            nextRun: a.nextRun?.toISOString(),
+        };
+    }
+
+    async updateAutomationConfig(updates: Partial<AutomationConfig>) {
+        const prisma = getPrisma();
+        const data: any = { ...updates };
+        if (updates.niches) data.niches = updates.niches.join(',');
+        if (updates.platforms) data.platforms = updates.platforms.join(',');
+        if (updates.types) data.types = updates.types.join(',');
+        if (updates.nextRun) data.nextRun = new Date(updates.nextRun);
+
+        await prisma.automationConfig.upsert({
+            where: { id: 1 },
+            update: data,
+            create: { id: 1, ...data }
+        });
+    }
+
+    async getScheduledPosts() {
+        const prisma = getPrisma();
+        const items = await prisma.scheduledPost.findMany({ orderBy: { scheduledAt: 'asc' } });
+        return items.map((s: PrismaScheduled) => ({
+            ...s,
+            scheduledAt: s.scheduledAt.toISOString(),
+            createdAt: s.createdAt.toISOString(),
+            platform: s.platform as any,
+            status: s.status as any,
+        }));
+    }
+
+    async getSettings(): Promise<SystemSettings> {
+        const prisma = getPrisma();
+        let s = await prisma.systemSettings.findUnique({ where: { id: 1 } });
+        if (!s) {
+            s = await prisma.systemSettings.create({ data: { id: 1 } });
+        }
+        return {
+            ...s,
+            contentLength: s.contentLength as any,
+            aiProvider: s.aiProvider as any,
+            videoResolution: s.videoResolution as any,
+            targetKeywords: s.targetKeywords ? s.targetKeywords.split(',') : [],
+        } as SystemSettings;
+    }
+
+    async getStats() {
+        const prisma = getPrisma();
+        const totalContent = await prisma.contentItem.count();
+        const published = await prisma.contentItem.count({ where: { status: 'published' } });
+        const generating = await prisma.contentItem.count({ where: { status: 'generating' } });
+        const scheduled = await prisma.scheduledPost.count({ where: { status: 'pending' } });
+
+        return {
+            totalContent,
+            published,
+            scheduled,
+            generating,
+            successRate: totalContent > 0 ? Math.round((published / totalContent) * 100) : 0,
+        };
+    }
+
+    async updateSettings(updates: Partial<SystemSettings>) {
+        const prisma = getPrisma();
+        const data: any = { ...updates };
+        if (updates.targetKeywords) data.targetKeywords = updates.targetKeywords.join(',');
+
+        await prisma.systemSettings.upsert({
+            where: { id: 1 },
+            update: data,
+            create: { id: 1, ...data }
+        });
+    }
+
+    async addSchedule(item: Omit<ScheduledPost, 'id' | 'createdAt' | 'status'> & { status?: ScheduledPost['status'] }) {
+        const prisma = getPrisma();
+        const newItem = await prisma.scheduledPost.create({
+            data: {
+                contentId: item.contentId,
+                platform: item.platform,
+                scheduledAt: new Date(item.scheduledAt),
+                status: item.status || 'pending',
+            }
+        });
+        await this.addActivity('schedule', 'Post Scheduled', `Scheduled for ${newItem.platform} at ${new Date(newItem.scheduledAt).toLocaleString()}`);
+        return {
+            ...newItem,
+            scheduledAt: newItem.scheduledAt.toISOString(),
+            createdAt: newItem.createdAt.toISOString(),
+            platform: newItem.platform as any,
+            status: newItem.status as any,
+        };
+    }
+
+    async reset() {
+        const prisma = getPrisma();
+        await prisma.session.deleteMany();
+        await prisma.user.deleteMany();
+        await prisma.contentItem.deleteMany();
+        await prisma.activityLog.deleteMany();
+        await prisma.platformAccount.deleteMany();
+        await prisma.scheduledPost.deleteMany();
+        await prisma.automationConfig.deleteMany();
+        await prisma.systemSettings.deleteMany();
+
+        await this.addActivity('auth', 'System Reset', 'All data has been cleared for a new beginning.');
     }
 }
 

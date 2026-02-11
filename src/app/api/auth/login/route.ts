@@ -9,7 +9,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
         }
 
-        const loginData = store.login(email, password);
+        const loginData = await store.login(email, password);
         if (!loginData) {
             return NextResponse.json({ error: 'Invalid email or password. Please try again.' }, { status: 401 });
         }

@@ -13,13 +13,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Password must be at least 6 characters long' }, { status: 400 });
         }
 
-        const user = store.signup(email, password, name);
+        const user = await store.signup(email, password, name);
         if (!user) {
             return NextResponse.json({ error: 'An account with this email already exists' }, { status: 400 });
         }
 
         // Auto-login after signup
-        const loginData = store.login(email, password);
+        const loginData = await store.login(email, password);
         if (!loginData) {
             return NextResponse.json({ error: 'Login failed after signup' }, { status: 500 });
         }

@@ -1,22 +1,24 @@
 import { NextResponse } from 'next/server';
 import store from '@/lib/store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
-    const settings = store.getSettings();
+    const settings = await store.getSettings();
     return NextResponse.json(settings);
 }
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const settings = store.getSettings();
 
         // Sync all settings
-        store.updateSettings(body);
+        await store.updateSettings(body);
 
-        store.addActivity('automation', 'Settings & Preferences Updated', 'System customization and API configurations were synchronized.');
+        await store.addActivity('automation', 'Settings & Preferences Updated', 'System customization and API configurations were synchronized.');
 
-        return NextResponse.json({ success: true, settings: store.getSettings() });
+        const updatedSettings = await store.getSettings();
+        return NextResponse.json({ success: true, settings: updatedSettings });
     } catch (error) {
         console.error('Settings API Error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

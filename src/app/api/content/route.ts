@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import store from '@/lib/store';
+
+export const dynamic = 'force-dynamic';
 import { generateBatchContent } from '@/lib/ai-engine';
 
 export async function GET() {
-    const content = store.getContent();
+    const content = await store.getContent();
     return NextResponse.json(content);
 }
 
@@ -15,7 +17,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const settings = store.getSettings();
+        const settings = await store.getSettings();
 
         // Pass "Customize Everything" preferences to AI Engine
         const results = await generateBatchContent(
@@ -31,14 +33,14 @@ export async function POST(request: Request) {
             }
         );
 
-        const items = results.map(content => store.addContent({
+        const items = await Promise.all(results.map(content => store.addContent({
             ...content,
             niche,
             style,
             platform,
             type,
             status: 'ready',
-        }));
+        } as any)));
 
         return NextResponse.json(items);
     } catch (error) {

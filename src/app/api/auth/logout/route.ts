@@ -5,7 +5,7 @@ import store from '@/lib/store';
 export async function POST() {
     const sessionId = cookies().get('sessionId')?.value;
     if (sessionId) {
-        store.logout(sessionId);
+        await store.logout(sessionId);
     }
 
     const response = NextResponse.json({ success: true });
