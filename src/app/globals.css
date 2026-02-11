@@ -1165,16 +1165,62 @@ select.input {
   background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
 }
 
+/* ---- Alive Background ---- */
+.alive-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg-dark);
+  overflow: hidden;
+}
+
+.alive-bg::before,
+.alive-bg::after {
+  content: '';
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  top: -25%;
+  left: -25%;
+  background: radial-gradient(circle at 20% 30%, rgba(108, 92, 231, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(0, 210, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(168, 85, 247, 0.12) 0%, transparent 50%);
+  filter: blur(80px);
+  animation: mesh-flow 30s ease-in-out infinite alternate;
+  opacity: 0.8;
+}
+
+.alive-bg::after {
+  animation-delay: -15s;
+  background: radial-gradient(circle at 70% 20%, rgba(108, 92, 231, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 30% 60%, rgba(0, 210, 255, 0.08) 0%, transparent 40%);
+  opacity: 0.5;
+}
+
+@keyframes mesh-flow {
+  0% {
+    transform: rotate(0deg) scale(1.1);
+  }
+
+  50% {
+    transform: rotate(5deg) scale(1.2);
+  }
+
+  100% {
+    transform: rotate(-5deg) scale(1.1);
+  }
+}
+
 /* ---- Animations ---- */
 @keyframes float {
 
   0%,
   100% {
-    transform: translateY(0) rotate(0deg);
+    transform: translateY(0);
   }
 
   50% {
-    transform: translateY(-20px) rotate(2deg);
+    transform: translateY(-10px);
   }
 }
 
@@ -1216,27 +1262,29 @@ select.input {
   }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-float-slow {
-  animation: float 8s ease-in-out infinite;
-}
-
 .animate-float-alt {
   animation: float-alt 10s ease-in-out infinite;
 }
 
+.animate-float-subtle {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* ---- Smooth Animations ---- */
 .reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(20px);
+  filter: blur(10px);
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform, filter;
 }
 
 .reveal.active {
   opacity: 1;
   transform: translateY(0);
+  filter: blur(0);
 }
 
 .stagger-1 {
@@ -1255,9 +1303,29 @@ select.input {
   transition-delay: 0.4s;
 }
 
+/* ---- Layout & Alignment Fixes ---- */
+.nav-content {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.feature-grid,
+.pricing-grid {
+  justify-items: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+}
+
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
+  box-shadow: 0 10px 40px rgba(108, 92, 231, 0.4);
 }
 
 .pricing-card:hover {
