@@ -49,7 +49,6 @@ To deploy this application, you can use Vercel:
 
 ## Tech Stack
 
--   **Framework**: Next.js 14
--   **Language**: TypeScript
--   **Styling**: CSS Modules / Global CSS
+-   **Database**: Prisma 7 with SQLite
+-   **Database Inspection**: Built-in `/database` interface for easy data verification.
 -   **AI**: Google Generative AI SDK, OpenAI API Support
