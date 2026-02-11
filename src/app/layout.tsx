@@ -6,8 +6,13 @@ export const metadata: Metadata = {
     title: 'AutoContent AI — Automated Content Platform',
     description: 'Fully automated TikTok & YouTube content creation, video generation, publishing, and sharing platform',
     manifest: '/manifest.json',
+};
+
+export const viewport = {
     themeColor: '#6c5ce7',
-    viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
