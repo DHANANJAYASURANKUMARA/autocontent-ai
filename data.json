@@ -475,8 +475,7 @@
   "sessions": {
     "demo-session-id": "23f1f4c8-9000-4a0b-8f24-3e941b56a0ce",
     "09ce66e1-5ed0-4fa9-9c0b-f5ccd0a132f3": "23f1f4c8-9000-4a0b-8f24-3e941b56a0ce",
-    "f2450ab4-3a74-494b-a3a0-f3169dcc976b": "23f1f4c8-9000-4a0b-8f24-3e941b56a0ce",
-    "b60d8238-9ff6-4680-8a89-1185e3681aa0": "23f1f4c8-9000-4a0b-8f24-3e941b56a0ce"
+    "f2450ab4-3a74-494b-a3a0-f3169dcc976b": "23f1f4c8-9000-4a0b-8f24-3e941b56a0ce"
   },
   "automation": {
     "enabled": false,
