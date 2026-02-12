@@ -22,6 +22,7 @@ interface GeneratedItem {
     type: string;
     status: string;
     imageUrl?: string;
+    videoUrl?: string;
 }
 
 export default function StudioPage() {
@@ -218,6 +219,25 @@ export default function StudioPage() {
         }
     }
 
+    async function handleDownloadVideo() {
+        if (!selectedContent?.videoUrl) return;
+        try {
+            const res = await fetch(selectedContent.videoUrl);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${selectedContent.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_video.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Video download failed:', err);
+            window.open(selectedContent.videoUrl, '_blank');
+        }
+    }
+
     return (
         <div>
             <div className="page-header">
@@ -363,6 +383,9 @@ export default function StudioPage() {
                                         <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleDownload} title="Download as .txt">📥 Download text</button>
                                         {selectedContent.imageUrl && (
                                             <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleDownloadImage} title="Download Image">🖼️ Download image</button>
+                                        )}
+                                        {selectedContent.videoUrl && (
+                                            <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleDownloadVideo} title="Download Video">📹 Download video</button>
                                         )}
                                     </div>
 

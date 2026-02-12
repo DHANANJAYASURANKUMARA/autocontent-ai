@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import store from '@/lib/store';
 import { generateBatchContent } from '@/lib/ai-engine';
+import { generateAsset } from '@/lib/video-generator';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,14 +47,30 @@ export async function POST(request: Request) {
             }
         );
 
-        const items = await Promise.all(results.map(content => store.addContent({
-            ...content,
-            niche,
-            style,
-            platform,
-            type,
-            status: 'ready',
-        } as any)));
+        const items = await Promise.all(results.map(async (content) => {
+            // Generate visual asset (video/photo) for the content
+            const asset = await generateAsset({
+                type: type as any,
+                platform: platform as any,
+                style,
+                niche,
+                font: settings.font,
+                primaryColor: settings.primaryColor,
+                backgroundStyle: settings.backgroundStyle
+            });
+
+            return store.addContent({
+                ...content,
+                niche,
+                style,
+                platform,
+                type,
+                status: 'ready',
+                imageUrl: asset.url, // For photos
+                videoUrl: (type === 'video' || type === 'shorts') ? asset.url : undefined,
+                thumbnailUrl: asset.thumbnailUrl
+            } as any);
+        }));
 
         return NextResponse.json(items);
     } catch (error) {
