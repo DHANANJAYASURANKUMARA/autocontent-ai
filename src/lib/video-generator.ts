@@ -23,6 +23,11 @@ export interface GenerationResult {
     duration?: number;
     resolution?: string;
     fileSize?: string;
+    storyboard?: {
+        scene: number;
+        description: string;
+        imageUrl: string;
+    }[];
 }
 
 async function callGrokImagine(prompt: string, apiKey: string): Promise<string> {
@@ -53,6 +58,20 @@ async function callGrokImagine(prompt: string, apiKey: string): Promise<string> 
         console.error("Grok Imagine Error:", err);
         return '';
     }
+}
+
+async function generateStoryboardScenes(niche: string, topic: string, count: number = 4): Promise<GenerationResult['storyboard']> {
+    const timestamp = Date.now();
+    const scenes = [];
+    for (let i = 1; i <= count; i++) {
+        const pPrompt = encodeURIComponent(`cinematic scene ${i} of ${count} for a ${niche} content about ${topic}, ultra high quality, 4k`);
+        scenes.push({
+            scene: i,
+            description: `AI Scene Fabrication ${i}: Immersing viewer in ${niche} concepts.`,
+            imageUrl: `https://image.pollinations.ai/prompt/${pPrompt}?width=1024&height=1024&nologo=true&seed=${timestamp + i}`
+        });
+    }
+    return scenes;
 }
 
 // Simulates asset generation pipeline (Video/Photo)
@@ -120,9 +139,11 @@ export async function generateAsset(req: GenerationRequest): Promise<GenerationR
 
     if (req.type === 'video' || req.type === 'shorts') {
         const isYT = req.platform === 'youtube' || req.type === 'video';
-        const isCinematic = true;
 
-        // Optimized Cinematic Samples
+        // Generate Storyboard if not explicitly skipped
+        const storyboard = await generateStoryboardScenes(req.niche, req.title || 'AI Transformation');
+
+        const isCinematic = true;
         const freeSamples = [
             'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
             'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
@@ -139,6 +160,7 @@ export async function generateAsset(req: GenerationRequest): Promise<GenerationR
             duration: Math.floor(Math.random() * 120) + 30,
             resolution: isYT ? '1920x1080' : '1080x1920',
             fileSize: `${(Math.random() * 50 + 10).toFixed(1)} MB`,
+            storyboard,
         };
     }
 

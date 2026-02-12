@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 const navItems = [
     { href: '/dashboard', icon: '📊', label: 'Dashboard' },
     { href: '/studio', icon: '🎬', label: 'Studio' },
+    { href: '/forge', icon: '🔥', label: 'Forge' },
     { href: '/publish', icon: '🚀', label: 'Publish' },
     { href: '/automation', icon: '⚡', label: 'Compute' },
     { href: '/settings', icon: '⚙️', label: 'Settings' },
@@ -78,7 +79,7 @@ export default function Sidebar() {
 
                 <nav className="sidebar-nav">
                     <span className="nav-section-label">Main</span>
-                    {navItems.slice(0, 4).map((item) => (
+                    {navItems.slice(0, 5).map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
@@ -90,7 +91,7 @@ export default function Sidebar() {
                     ))}
 
                     <span className="nav-section-label">System</span>
-                    {navItems.slice(4).map((item) => (
+                    {navItems.slice(5).map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
