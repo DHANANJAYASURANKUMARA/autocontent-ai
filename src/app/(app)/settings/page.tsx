@@ -419,16 +419,25 @@ export default function SettingsPage() {
 
             <style jsx>{`
                 .tab-btn {
-                    padding: 16px 24px;
+                    padding: 12px 16px;
                     background: transparent;
                     border: none;
                     border-bottom: 2px solid transparent;
                     color: var(--text-muted);
-                    font-size: 14px;
+                    font-size: 13px;
                     font-weight: 600;
                     cursor: pointer;
                     transition: all 0.2s;
                     flex: 1;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                @media (max-width: 600px) {
+                    .tab-btn {
+                        padding: 10px 8px;
+                        font-size: 11px;
+                    }
                 }
                 .tab-btn:hover {
                     color: var(--text-primary);

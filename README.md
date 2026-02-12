@@ -50,5 +50,5 @@ To deploy this application, you can use Vercel:
 ## Tech Stack
 
 -   **Database**: Prisma 7 with SQLite
--   **Database Inspection**: Built-in `/database` interface for easy data verification.
+
 -   **AI**: Google Generative AI SDK, OpenAI API Support
