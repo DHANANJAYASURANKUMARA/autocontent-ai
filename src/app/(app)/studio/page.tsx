@@ -35,33 +35,49 @@ export default function StudioPage() {
     const [generated, setGenerated] = useState<GeneratedItem[]>([]);
     const [pipelineStage, setPipelineStage] = useState(-1);
     const [selectedContent, setSelectedContent] = useState<GeneratedItem | null>(null);
+    const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error', message: string }>({ type: 'idle', message: '' });
 
     async function handleGenerate() {
         setIsGenerating(true);
         setPipelineStage(0);
+        setStatus({ type: 'loading', message: 'Starting generation pipeline...' });
 
         const stages = type === 'video' || type === 'shorts'
             ? ['📝 Scripting...', '🎙️ Audio...', '🎨 Visuals...', '🎬 Rendering...', '📦 Finishing...']
             : ['📝 Writing...', '🎨 Designing...', '📦 Finishing...'];
 
-        for (let i = 0; i < stages.length; i++) {
-            setPipelineStage(i);
-            await new Promise(r => setTimeout(r, 600));
-        }
-
         try {
+            for (let i = 0; i < stages.length; i++) {
+                setPipelineStage(i);
+                setStatus({ type: 'loading', message: stages[i] });
+                await new Promise(r => setTimeout(r, 600));
+            }
+
             const res = await fetch('/api/content', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ niche, style, platform, type, customTopic: customTopic || undefined, count: batchCount }),
             });
-            const items = await res.json();
-            if (Array.isArray(items)) {
-                setGenerated(prev => [...items, ...prev]);
-                setSelectedContent(items[0]);
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setStatus({ type: 'error', message: data.error || 'Generation failed' });
+                setTimeout(() => setStatus({ type: 'idle', message: '' }), 5000);
+            } else {
+                if (Array.isArray(data)) {
+                    setGenerated(prev => [...data, ...prev]);
+                    setSelectedContent(data[0]);
+                    setStatus({ type: 'success', message: 'Content generated successfully!' });
+                    setTimeout(() => setStatus({ type: 'idle', message: '' }), 3000);
+                } else {
+                    throw new Error('Invalid response from server');
+                }
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Generation failed:', err);
+            setStatus({ type: 'error', message: err.message || 'Network error occurred' });
+            setTimeout(() => setStatus({ type: 'idle', message: '' }), 5000);
         } finally {
             setIsGenerating(false);
             setPipelineStage(-1);
@@ -95,6 +111,20 @@ export default function StudioPage() {
                     <h2>🎬 Content Studio</h2>
                     <p>Create AI-powered videos, photos, and posts automatically</p>
                 </div>
+                {status.message && (
+                    <div className={`fade-in`} style={{
+                        padding: '8px 12px',
+                        borderRadius: 6,
+                        fontSize: 13,
+                        background: status.type === 'error' ? 'rgba(255, 50, 50, 0.1)' : 'rgba(50, 255, 50, 0.1)',
+                        color: status.type === 'error' ? '#ff4d4d' : '#4dff4d',
+                        border: `1px solid ${status.type === 'error' ? '#ff4d4d' : '#4dff4d'}`,
+                        marginLeft: 'auto',
+                        marginRight: 12
+                    }}>
+                        {status.message}
+                    </div>
+                )}
             </div>
 
             <div className="two-col">

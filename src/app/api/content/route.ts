@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
         const settings = await store.getSettings();
 
-        // Pass "Customize Everything" preferences to AI Engine
+        // Pass all provider and visual settings to AI Engine
         const results = await generateBatchContent(
             { niche, style, platform, type, customTopic },
             count,
@@ -29,7 +29,15 @@ export async function POST(request: Request) {
                 length: settings.contentLength,
                 brandName: settings.brandName,
                 language: settings.videoLanguage,
-                targetKeywords: settings.targetKeywords
+                targetKeywords: settings.targetKeywords,
+                font: settings.font,
+                primaryColor: settings.primaryColor,
+                backgroundStyle: settings.backgroundStyle,
+                aiProvider: settings.aiProvider,
+                openaiKey: settings.openaiKey,
+                customBaseUrl: settings.customBaseUrl,
+                customKey: settings.customKey,
+                customModel: settings.customModel,
             }
         );
 
