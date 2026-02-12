@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const NICHES = ['Technology', 'Motivation', 'Finance', 'Gaming', 'Education', 'Fitness', 'Comedy', 'Cooking', 'Travel', 'Science'];
 const STYLES = ['educational', 'entertaining', 'tutorial', 'motivational', 'storytelling'];
@@ -36,6 +36,54 @@ export default function StudioPage() {
     const [pipelineStage, setPipelineStage] = useState(-1);
     const [selectedContent, setSelectedContent] = useState<GeneratedItem | null>(null);
     const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error', message: string }>({ type: 'idle', message: '' });
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState({ title: '', description: '', script: '' });
+
+    useEffect(() => {
+        fetchHistory();
+    }, []);
+
+    async function fetchHistory() {
+        try {
+            const res = await fetch('/api/content');
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setGenerated(data);
+                if (data.length > 0) setSelectedContent(data[0]);
+            }
+        } catch (err) {
+            console.error('Failed to fetch history:', err);
+        }
+    }
+
+    async function handleClearAll() {
+        if (!confirm('Are you sure you want to remove all generated content? This cannot be undone.')) return;
+        setStatus({ type: 'loading', message: 'Clearing all content...' });
+        try {
+            const res = await fetch('/api/content', { method: 'DELETE' });
+            if (res.ok) {
+                setGenerated([]);
+                setSelectedContent(null);
+                setStatus({ type: 'success', message: 'All content removed' });
+                setTimeout(() => setStatus({ type: 'idle', message: '' }), 3000);
+            }
+        } catch (err) {
+            setStatus({ type: 'error', message: 'Failed to clear content' });
+        }
+    }
+
+    async function handleDelete(id: string) {
+        if (!confirm('Delete this item?')) return;
+        try {
+            const res = await fetch(`/api/content?id=${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                setGenerated(prev => prev.filter(item => item.id !== id));
+                if (selectedContent?.id === id) setSelectedContent(null);
+            }
+        } catch (err) {
+            alert('Failed to delete item');
+        }
+    }
 
     async function handleGenerate() {
         setIsGenerating(true);
@@ -84,6 +132,28 @@ export default function StudioPage() {
         }
     }
 
+    async function handleUpdate() {
+        if (!selectedContent) return;
+        setStatus({ type: 'loading', message: 'Updating content...' });
+        try {
+            const res = await fetch('/api/content', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: selectedContent.id, updates: editData }),
+            });
+            if (res.ok) {
+                const updatedItem = { ...selectedContent, ...editData };
+                setGenerated(prev => prev.map(item => item.id === selectedContent.id ? updatedItem : item));
+                setSelectedContent(updatedItem);
+                setIsEditing(false);
+                setStatus({ type: 'success', message: 'Content updated!' });
+                setTimeout(() => setStatus({ type: 'idle', message: '' }), 3000);
+            }
+        } catch (err) {
+            setStatus({ type: 'error', message: 'Update failed' });
+        }
+    }
+
     async function handlePublish(contentId: string, targetPlatform: string) {
         try {
             const res = await fetch('/api/publish', {
@@ -95,13 +165,23 @@ export default function StudioPage() {
             if (data.success) {
                 setGenerated(prev => prev.map(g => g.id === contentId ? { ...g, status: 'published' } : g));
                 if (selectedContent?.id === contentId) {
-                    setSelectedContent({ ...selectedContent, status: 'published' });
+                    setSelectedContent(prev => prev ? { ...prev, status: 'published' } : null);
                 }
             }
             alert(data.message);
         } catch (err) {
             console.error('Publish failed:', err);
         }
+    }
+
+    function startEditing() {
+        if (!selectedContent) return;
+        setEditData({
+            title: selectedContent.title,
+            description: selectedContent.description,
+            script: selectedContent.script
+        });
+        setIsEditing(true);
     }
 
     return (
@@ -112,7 +192,7 @@ export default function StudioPage() {
                     <p>Create AI-powered videos, photos, and posts automatically</p>
                 </div>
                 {status.message && (
-                    <div className={`fade-in`} style={{
+                    <div className="fade-in" style={{
                         padding: '8px 12px',
                         borderRadius: 6,
                         fontSize: 13,
@@ -179,7 +259,7 @@ export default function StudioPage() {
 
                     {isGenerating && (
                         <div className="progress-bar" style={{ marginTop: 12 }}>
-                            <div className="progress-fill" style={{ width: `${((pipelineStage + 1) / 5) * 100}%` }} />
+                            <div className="progress-fill" style={{ width: `${((pipelineStage + 1) / (type === 'video' || type === 'shorts' ? 5 : 3)) * 100}%` }} />
                         </div>
                     )}
                 </div>
@@ -214,23 +294,50 @@ export default function StudioPage() {
                                 </div>
                             </div>
 
-                            <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{selectedContent.title}</h4>
-                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>{selectedContent.description}</p>
-
-                            <div style={{ marginBottom: 16 }}>
-                                <div style={{ padding: 12, background: 'var(--bg-glass)', borderRadius: 'var(--radius-sm)', fontSize: 13, border: '1px solid var(--border-color)', whiteSpace: 'pre-wrap', maxHeight: 150, overflowY: 'auto' }}>
-                                    {selectedContent.script}
+                            {isEditing ? (
+                                <div className="fade-in">
+                                    <div className="input-group">
+                                        <label>Title</label>
+                                        <input className="input" value={editData.title} onChange={e => setEditData({ ...editData, title: e.target.value })} />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Description</label>
+                                        <textarea className="input" style={{ height: 60 }} value={editData.description} onChange={e => setEditData({ ...editData, description: e.target.value })} />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Script / Body</label>
+                                        <textarea className="input" style={{ height: 120 }} value={editData.script} onChange={e => setEditData({ ...editData, script: e.target.value })} />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                                        <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleUpdate}>💾 Save Changes</button>
+                                        <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setIsEditing(false)}>Cancel</button>
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div>
+                                    <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{selectedContent.title}</h4>
+                                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>{selectedContent.description}</p>
 
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handlePublish(selectedContent.id, 'facebook')}>
-                                    👥 Facebook
-                                </button>
-                                <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handlePublish(selectedContent.id, 'youtube')}>
-                                    📺 YouTube
-                                </button>
-                            </div>
+                                    <div style={{ marginBottom: 16 }}>
+                                        <div style={{ padding: 12, background: 'var(--bg-glass)', borderRadius: 'var(--radius-sm)', fontSize: 13, border: '1px solid var(--border-color)', whiteSpace: 'pre-wrap', maxHeight: 150, overflowY: 'auto' }}>
+                                            {selectedContent.script}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                                        <button className="btn btn-secondary" style={{ flex: 1 }} onClick={startEditing}>✏️ Edit Content</button>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                        <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handlePublish(selectedContent.id, 'facebook')}>
+                                            👥 Facebook
+                                        </button>
+                                        <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handlePublish(selectedContent.id, 'youtube')}>
+                                            📺 YouTube
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="empty-state">
@@ -243,11 +350,21 @@ export default function StudioPage() {
             {/* Content Explorer */}
             {generated.length > 0 && (
                 <div className="card" style={{ marginTop: 24 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>📦 Recently Generated</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                        <h3 style={{ fontSize: 16, fontWeight: 700 }}>📦 Recently Generated</h3>
+                        <button className="btn btn-sm btn-danger" onClick={handleClearAll}>🗑️ Remove All</button>
+                    </div>
                     <div className="content-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 16 }}>
                         {generated.map(item => (
-                            <div key={item.id} className="card" style={{ padding: 16, cursor: 'pointer', border: selectedContent?.id === item.id ? '1px solid var(--accent-primary)' : undefined }} onClick={() => setSelectedContent(item)}>
-                                <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h4>
+                            <div key={item.id} className="card" style={{ padding: 16, cursor: 'pointer', position: 'relative', border: selectedContent?.id === item.id ? '1px solid var(--accent-primary)' : undefined }} onClick={() => setSelectedContent(item)}>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                    style={{ position: 'absolute', top: 8, right: 8, background: 'transparent', border: 'none', color: '#ff4d4d', cursor: 'pointer', padding: 4 }}
+                                    title="Delete"
+                                >
+                                    ✕
+                                </button>
+                                <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, paddingRight: 20, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h4>
                                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                     <span className="badge badge-info" style={{ fontSize: 10 }}>{item.type.toUpperCase()}</span>
                                     <span className="badge badge-success" style={{ fontSize: 10 }}>{item.status}</span>

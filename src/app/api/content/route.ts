@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import store from '@/lib/store';
-
-export const dynamic = 'force-dynamic';
 import { generateBatchContent } from '@/lib/ai-engine';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
-    const content = await store.getContent();
-    return NextResponse.json(content);
+    try {
+        const content = await store.getContent();
+        return NextResponse.json(content);
+    } catch (error) {
+        console.error('Content GET Error:', error);
+        return NextResponse.json({ error: 'Failed to fetch content' }, { status: 500 });
+    }
 }
 
 export async function POST(request: Request) {
@@ -54,5 +59,38 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error('Content Generation Route Error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (id) {
+            await store.deleteContent(id);
+            return NextResponse.json({ success: true, message: 'Content deleted' });
+        } else {
+            await store.deleteAllContent();
+            return NextResponse.json({ success: true, message: 'All content deleted' });
+        }
+    } catch (error) {
+        console.error('Content Delete Error:', error);
+        return NextResponse.json({ error: 'Failed to delete content' }, { status: 500 });
+    }
+}
+
+export async function PATCH(request: Request) {
+    try {
+        const { id, updates } = await request.json();
+        if (!id || !updates) {
+            return NextResponse.json({ error: 'Missing id or updates' }, { status: 400 });
+        }
+
+        await store.updateContent(id, updates);
+        return NextResponse.json({ success: true, message: 'Content updated' });
+    } catch (error) {
+        console.error('Content Update Error:', error);
+        return NextResponse.json({ error: 'Failed to update content' }, { status: 500 });
     }
 }

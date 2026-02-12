@@ -182,9 +182,22 @@ class DataStore {
         const prisma = getPrisma();
         const data: any = { ...updates };
         if (updates.hashtags) data.hashtags = updates.hashtags.join(',');
-        if (updates.publishedAt) data.publishedAt = new Date(updates.publishedAt);
+        if (updates.publishedAt) data.publishedAt = updates.publishedAt ? new Date(updates.publishedAt) : undefined;
 
         await prisma.contentItem.update({ where: { id }, data });
+    }
+
+    async deleteContent(id: string) {
+        await this.ensureInitialized();
+        const prisma = getPrisma();
+        await prisma.contentItem.delete({ where: { id } });
+    }
+
+    async deleteAllContent() {
+        await this.ensureInitialized();
+        const prisma = getPrisma();
+        await prisma.contentItem.deleteMany();
+        await this.addActivity('automation', 'Content Cleared', 'All generated content items have been permanently removed.');
     }
 
     async signup(email: string, password: string, name: string): Promise<User | null> {
