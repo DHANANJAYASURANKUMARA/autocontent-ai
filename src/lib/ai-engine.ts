@@ -125,7 +125,9 @@ export async function generateContent(
         - imageDescription: (Optional) If it's a photo, describe what should be in the image.
     `;
 
-    const prompt = req.isManual && req.manualPrompt ? req.manualPrompt : boilerplate;
+    const prompt = req.isManual && req.manualPrompt
+        ? `${req.manualPrompt}${lang !== 'English' ? `\n\nIMPORTANT: Respond in ${lang}.` : ''}`
+        : boilerplate;
 
     try {
         let text = '';

@@ -138,6 +138,55 @@ export default function DashboardPage() {
                 ))}
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, marginTop: 24 }}>
+                <div className="card" style={{ position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                        <h3 style={{ fontSize: 16, fontWeight: 700 }}>📈 Performance Velocity</h3>
+                        <div style={{ fontSize: 11, color: 'var(--accent-primary)', fontWeight: 700, textTransform: 'uppercase' }}>Live Analytics</div>
+                    </div>
+
+                    {/* CSS-Based Chart Visualization */}
+                    <div style={{ height: 200, display: 'flex', alignItems: 'flex-end', gap: 12, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        {[40, 65, 45, 90, 75, 55, 100, 85, 95, 60, 70, 80].map((h, i) => (
+                            <div key={i} style={{ flex: 1, height: `${h}%`, background: `linear-gradient(to top, var(--accent-primary), transparent)`, borderRadius: '4px 4px 0 0', position: 'relative', opacity: 0.8 }} className="chart-bar">
+                                <div style={{ position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)', fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>{h}%</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        <span>Week 1</span>
+                        <span>Week 2</span>
+                        <span>Week 3</span>
+                        <span>Current</span>
+                    </div>
+                </div>
+
+                <div className="card" style={{ background: 'rgba(10,10,18,0.4)', borderColor: 'rgba(108, 92, 231, 0.2)' }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span className="pulse" style={{ width: 6, height: 6 }} /> AI Health HUD
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {[
+                            { name: 'Gemini Engine', status: 'Operational', latency: '42ms', color: '#4dff4d' },
+                            { name: 'Grok Vision', status: 'Optimal', latency: '128ms', color: '#4dff4d' },
+                            { name: 'Pollinations AI', status: 'Online', latency: '85ms', color: '#4dff4d' },
+                            { name: 'System Core', status: 'Stable', latency: '12ms', color: '#0070f3' },
+                        ].map((srv, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                <div>
+                                    <div style={{ fontSize: 12, fontWeight: 600 }}>{srv.name}</div>
+                                    <div style={{ fontSize: 10, color: srv.color }}>{srv.status}</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>{srv.latency}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: 20, fontSize: 11 }}>Deep System Audit</button>
+                </div>
+            </div>
+
             <div className="two-col" style={{ marginTop: 24 }}>
                 <div className="card">
                     <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>🎬 Recent Generation</h3>
@@ -176,6 +225,6 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

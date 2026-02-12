@@ -120,25 +120,31 @@ export default function LandingPage() {
             </nav>
 
             {/* Hero Section Container */}
-            <section style={{ padding: '180px 0 100px', position: 'relative' }}>
+            <section style={{ padding: '200px 0 120px', position: 'relative', overflow: 'hidden' }}>
+                <div className="hero-glow" style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: '800px', height: '800px', background: 'radial-gradient(circle, rgba(108, 92, 231, 0.15) 0%, transparent 70%)', zIndex: -1 }} />
+
                 <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '80px', alignItems: 'center' }}>
                     {/* Left Side: Value Prop */}
                     <div className="reveal active">
-                        <h1 style={{ fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: 800, lineHeight: 1.1, letterSpacing: -1.5, marginBottom: 24 }}>
-                            Scale Your Content <br /> <span style={{ color: 'var(--accent-primary)' }}>Automatically</span>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', background: 'rgba(108, 92, 231, 0.1)', border: '1px solid rgba(108, 92, 231, 0.2)', borderRadius: 100, marginBottom: 24, fontSize: 12, fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                            <span className="pulse" /> AI-POWERED AUTONOMY V2.0
+                        </div>
+                        <h1 style={{ fontSize: 'clamp(40px, 7vw, 84px)', fontWeight: 900, lineHeight: 1, letterSpacing: -2.5, marginBottom: 24, background: 'linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.5))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            Design. <br /> Generate. <br /> <span style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Dominate.</span>
                         </h1>
-                        <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 40, maxWidth: 500 }}>
-                            The professional platform for automated content generation and multi-platform distribution. Built for modern growth teams.
+                        <p style={{ fontSize: '20px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, marginBottom: 44, maxWidth: 540 }}>
+                            The definitive full-stack ecosystem for autonomous content empires. Create, distribute, and scale your brand with zero-touch AI pipelines.
                         </p>
-                        <div style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
-                            <div>
-                                <div style={{ fontSize: 24, fontWeight: 800 }}>10M+</div>
-                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>Views Generated</div>
+
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 40, alignItems: 'center' }}>
+                            <div className="stat-group">
+                                <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 4 }}>12.4M</div>
+                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 700 }}>Impressions</div>
                             </div>
-                            <div style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.1)' }} />
-                            <div>
-                                <div style={{ fontSize: 24, fontWeight: 800 }}>50k+</div>
-                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>Active Pipelines</div>
+                            <div style={{ width: 1, height: 40, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent)' }} />
+                            <div className="stat-group">
+                                <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 4 }}>98.2%</div>
+                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 700 }}>AI Precision</div>
                             </div>
                         </div>
                     </div>
@@ -297,6 +303,34 @@ export default function LandingPage() {
             </footer>
 
             <style jsx>{`
+                .pulse {
+                    width: 8px;
+                    height: 8px;
+                    background: var(--accent-primary);
+                    border-radius: 50%;
+                    box-shadow: 0 0 0 transparent;
+                    animation: pulse 2s infinite;
+                }
+                @keyframes pulse {
+                    0% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.7); }
+                    70% { box-shadow: 0 0 0 10px rgba(108, 92, 231, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0); }
+                }
+                @keyframes marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                }
+                .glass-card {
+                    background: rgba(255, 255, 255, 0.02);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                    transition: transform 0.3s ease, border-color 0.3s ease;
+                }
+                .glass-card:hover {
+                    border-color: rgba(108, 92, 231, 0.3);
+                    transform: translateY(-5px);
+                }
                 .container {
                     width: 100%;
                     max-width: 1400px;

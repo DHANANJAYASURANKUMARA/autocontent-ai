@@ -52,6 +52,8 @@ export interface AutomationConfig {
     types: ('video' | 'photo' | 'shorts' | 'text')[];
     frequency: 'hourly' | 'daily' | 'weekly';
     nextRun?: string;
+    bulkCount: number;
+    rotateNiches: boolean;
 }
 
 export interface SystemSettings {
@@ -274,6 +276,8 @@ class DataStore {
             types: a.types ? a.types.split(',').filter(Boolean) : [] as any,
             frequency: a.frequency as any,
             nextRun: a.nextRun?.toISOString(),
+            bulkCount: a.bulkCount,
+            rotateNiches: a.rotateNiches,
         };
     }
 

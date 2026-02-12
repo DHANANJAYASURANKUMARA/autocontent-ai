@@ -18,6 +18,8 @@ interface AutomationConfig {
     platforms: string[];
     types: string[];
     frequency: string;
+    bulkCount: number;
+    rotateNiches: boolean;
 }
 
 export default function AutomationPage() {
@@ -28,6 +30,8 @@ export default function AutomationPage() {
         platforms: ['youtube', 'tiktok'],
         types: ['video', 'shorts'],
         frequency: 'daily',
+        bulkCount: 5,
+        rotateNiches: true,
     });
     const [loading, setLoading] = useState(true);
     const [running, setRunning] = useState(false);
@@ -93,29 +97,27 @@ export default function AutomationPage() {
         }
     }
 
-    async function runPipeline() {
+    async function runPipeline(count: number = 1) {
         setRunning(true);
-        setRunLog(['🔍 Initializing Pipeline...', '🤖 Contacting Gemini AI...']);
+        setRunLog(['🔍 Initializing Bulk Pipeline...', `🤖 Generation target: ${count} items`]);
 
         try {
             const res = await fetch('/api/automation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'run' }),
+                body: JSON.stringify({ action: 'run', count }),
             });
             const data = await res.json();
-            if (data.generated) {
-                const stages = [
-                    `✨ Topic selected: ${data.generated.niche}`,
-                    `📝 Generated ${data.generated.type.toUpperCase()} script`,
-                    `🎨 Created visuals for platform: ${data.generated.platform}`,
-                    `📦 Exported: "${data.generated.title}"`,
-                    '✅ Pipeline Complete!'
-                ];
-                for (const stage of stages) {
-                    setRunLog(prev => [...prev, stage]);
-                    await new Promise(r => setTimeout(r, 600));
-                }
+
+            if (data.results) {
+                setRunLog(prev => [...prev, `✅ Bulk Generation Successful (${data.results.length} items)`]);
+                data.results.forEach((item: any, i: number) => {
+                    setTimeout(() => {
+                        setRunLog(prev => [...prev, `✨ [Item ${i + 1}] ${item.title} (${item.type})`]);
+                    }, i * 200);
+                });
+            } else if (data.generated) {
+                setRunLog(prev => [...prev, `✅ Pipeline Complete: ${data.generated.title}`]);
             }
         } catch (err) {
             setRunLog(prev => [...prev, '❌ Pipeline error occurred']);
@@ -137,8 +139,8 @@ export default function AutomationPage() {
                     <h2>⚡ Automation</h2>
                     <p>Manage your autonomous multi-modal pipeline</p>
                 </div>
-                <button className="btn btn-primary" onClick={runPipeline} disabled={running}>
-                    {running ? 'Running...' : '▶️ Trigger Run'}
+                <button className="btn btn-primary" onClick={() => runPipeline(config.bulkCount)} disabled={running}>
+                    {running ? 'Running...' : `▶️ Run Bulk (${config.bulkCount})`}
                 </button>
             </div>
 
@@ -207,6 +209,31 @@ export default function AutomationPage() {
                             <option value="daily">Daily</option>
                             <option value="weekly">Weekly</option>
                         </select>
+                    </div>
+
+                    <div className="input-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(108, 92, 231, 0.05)', padding: 12, borderRadius: 8 }}>
+                        <div>
+                            <label style={{ margin: 0 }}>Smart Niche Rotation</label>
+                            <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Cycle through selected niches automatically</p>
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={config.rotateNiches}
+                            onChange={e => updateConfig({ rotateNiches: e.target.checked })}
+                            style={{ width: 20, height: 20 }}
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <label>Bulk Generation Count ({config.bulkCount})</label>
+                        <input
+                            type="range"
+                            min="1"
+                            max="20"
+                            className="input"
+                            value={config.bulkCount}
+                            onChange={e => updateConfig({ bulkCount: parseInt(e.target.value) })}
+                        />
                     </div>
                 </div>
 

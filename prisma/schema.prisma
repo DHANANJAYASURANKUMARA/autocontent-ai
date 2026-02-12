@@ -79,8 +79,10 @@ model AutomationConfig {
   style     String    @default("educational")
   platforms String
   types     String
-  frequency String    @default("daily")
-  nextRun   DateTime?
+  frequency    String    @default("daily")
+  bulkCount    Int       @default(1)
+  rotateNiches Boolean   @default(false)
+  nextRun      DateTime?
 }
 
 model SystemSettings {
