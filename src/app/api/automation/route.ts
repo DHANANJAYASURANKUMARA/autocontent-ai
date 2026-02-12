@@ -110,7 +110,7 @@ export async function POST(request: Request) {
                 description: generated.description,
                 script: generated.script,
                 hashtags: generated.hashtags,
-                imageUrl: asset.url,
+                imageUrl: (type === 'video' || type === 'shorts') ? asset.thumbnailUrl : asset.url,
                 videoUrl: (type === 'video' || type === 'shorts') ? asset.url : undefined,
                 thumbnailUrl: asset.thumbnailUrl,
                 niche,

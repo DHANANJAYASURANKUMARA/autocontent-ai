@@ -76,11 +76,15 @@ export async function generateAsset(req: GenerationRequest): Promise<GenerationR
     // Video Logic (Grok Proxy Simulation)
     if (req.grokKey && isVideo) {
         console.log(`[GROK VIDEO] Simulating video generation with xAI for ${req.title}...`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        // Placeholder for real xAI video endpoint when available
+
+        // Generate a high-quality thumbnail using Grok Imagine
+        const thumbnailPrompt = `A stunning cinematic ${req.style} thumbnail for a ${req.niche} video about ${req.title}. Visual style: ${req.backgroundStyle} background.`;
+        const grokThumbnail = await callGrokImagine(thumbnailPrompt, req.grokKey);
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
         return {
             url: `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4`,
-            thumbnailUrl: `https://picsum.photos/seed/${timestamp}/1280/720`,
+            thumbnailUrl: grokThumbnail || `https://picsum.photos/seed/${timestamp}/1280/720`,
             duration: 60,
             resolution: '1280x720',
             fileSize: '15 MB'

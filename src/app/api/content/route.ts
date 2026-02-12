@@ -69,7 +69,7 @@ export async function POST(request: Request) {
                 platform,
                 type,
                 status: 'ready',
-                imageUrl: asset.url, // For photos
+                imageUrl: (type === 'video' || type === 'shorts') ? asset.thumbnailUrl : asset.url,
                 videoUrl: (type === 'video' || type === 'shorts') ? asset.url : undefined,
                 thumbnailUrl: asset.thumbnailUrl
             } as any);

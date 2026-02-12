@@ -23,6 +23,7 @@ interface GeneratedItem {
     status: string;
     imageUrl?: string;
     videoUrl?: string;
+    thumbnailUrl?: string;
 }
 
 export default function StudioPage() {
@@ -335,12 +336,19 @@ export default function StudioPage() {
                                 overflow: 'hidden',
                                 position: 'relative'
                             }}>
-                                {selectedContent.imageUrl ? (
+                                {selectedContent.videoUrl ? (
+                                    <video
+                                        src={selectedContent.videoUrl}
+                                        controls
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        poster={selectedContent.thumbnailUrl || selectedContent.imageUrl}
+                                    />
+                                ) : selectedContent.imageUrl ? (
                                     <img src={selectedContent.imageUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
                                     <div style={{ textAlign: 'center' }}>
                                         <span style={{ fontSize: 48 }}>🎬</span>
-                                        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>Video Placeholder</p>
+                                        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>No Preview Available</p>
                                     </div>
                                 )}
                                 <div style={{ position: 'absolute', top: 12, left: 12 }}>
