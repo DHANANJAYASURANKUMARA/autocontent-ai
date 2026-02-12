@@ -6,13 +6,16 @@ import { usePathname, useRouter } from 'next/navigation';
 
 const navItems = [
     { href: '/dashboard', icon: '📊', label: 'Dashboard' },
-    { href: '/studio', icon: '🎬', label: 'Content Studio' },
-    { href: '/publish', icon: '🚀', label: 'Publishing' },
-    { href: '/schedule', icon: '📅', label: 'Schedule' },
-    { href: '/automation', icon: '⚡', label: 'Automation' },
-    { href: '/database', icon: '🗄️', label: 'View DB' },
+    { href: '/studio', icon: '🎬', label: 'Studio' },
+    { href: '/publish', icon: '🚀', label: 'Publish' },
+    { href: '/automation', icon: '⚡', label: 'Compute' },
     { href: '/settings', icon: '⚙️', label: 'Settings' },
+    { href: '/schedule', icon: '📅', label: 'Schedule' },
 ];
+
+// ... inside component ...
+
+
 
 export default function Sidebar() {
     const pathname = usePathname();
@@ -118,6 +121,7 @@ export default function Sidebar() {
             {/* Mobile Bottom Nav */}
             <nav className="mobile-nav">
                 <div className="mobile-nav-items">
+                    {/* Show top 5 items for mobile, prioritizing Settings */}
                     {navItems.slice(0, 5).map((item) => (
                         <Link
                             key={item.href}

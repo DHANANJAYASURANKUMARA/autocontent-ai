@@ -91,9 +91,31 @@ export default function LandingPage() {
                         <Link href="/signup" className="btn btn-secondary" style={{ padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600 }}>Create Account</Link>
                     </div>
 
-                    <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ color: '#fff', fontSize: 24, background: 'transparent', border: 'none' }}>
+                    <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ color: '#fff', fontSize: 24, background: 'transparent', border: 'none', position: 'relative', zIndex: 1002 }}>
                         {mobileMenuOpen ? '✕' : '☰'}
                     </button>
+
+                    {/* Mobile Menu Overlay */}
+                    <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`} style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(5, 5, 10, 0.98)',
+                        backdropFilter: 'blur(20px)',
+                        zIndex: 1001,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 32,
+                        transition: 'opacity 0.3s ease, visibility 0.3s ease',
+                        opacity: mobileMenuOpen ? 1 : 0,
+                        visibility: mobileMenuOpen ? 'visible' : 'hidden',
+                    }}>
+                        <a href="#features" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: 24, fontWeight: 700 }}>Features</a>
+                        <a href="#pricing" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: 24, fontWeight: 700 }}>Pricing</a>
+                        <Link href="/login" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: 24, fontWeight: 700 }}>Login</Link>
+                        <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="btn btn-primary" style={{ padding: '16px 32px', fontSize: 18 }}>Create Account</Link>
+                    </div>
                 </div>
             </nav>
 
