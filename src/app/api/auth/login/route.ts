@@ -27,6 +27,7 @@ export async function POST(request: Request) {
 
         return response;
     } catch (error) {
+        console.error('[LOGIN API ERROR]', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
