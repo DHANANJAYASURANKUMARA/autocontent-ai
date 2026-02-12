@@ -184,6 +184,40 @@ export default function StudioPage() {
         setIsEditing(true);
     }
 
+    function handleDownload() {
+        if (!selectedContent) return;
+        const text = `TITLE: ${selectedContent.title}\n\nDESCRIPTION: ${selectedContent.description}\n\nSCRIPT:\n${selectedContent.script}\n\nHASHTAGS: ${selectedContent.hashtags.join(', ')}`;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedContent.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_content.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    async function handleDownloadImage() {
+        if (!selectedContent?.imageUrl) return;
+        try {
+            const res = await fetch(selectedContent.imageUrl);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${selectedContent.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_image.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Image download failed:', err);
+            // Fallback: open in new tab
+            window.open(selectedContent.imageUrl, '_blank');
+        }
+    }
+
     return (
         <div>
             <div className="page-header">
@@ -326,6 +360,10 @@ export default function StudioPage() {
 
                                     <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
                                         <button className="btn btn-secondary" style={{ flex: 1 }} onClick={startEditing}>✏️ Edit Content</button>
+                                        <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleDownload} title="Download as .txt">📥 Download text</button>
+                                        {selectedContent.imageUrl && (
+                                            <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleDownloadImage} title="Download Image">🖼️ Download image</button>
+                                        )}
                                     </div>
 
                                     <div style={{ display: 'flex', gap: 8 }}>
