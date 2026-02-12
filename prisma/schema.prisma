@@ -90,6 +90,7 @@ model SystemSettings {
   tiktokKey       String @default("")
   facebookKey     String @default("")
   geminiKey       String @default("")
+  grokKey         String @default("")
   contentTone     String @default("Professional & Engaging")
   contentLength   String @default("medium")
   brandName       String @default("AutoContent AI")

@@ -1,12 +1,17 @@
 // AutoContent AI — Assets Generation Simulator
 // In production, this would use FFmpeg + TTS to create real videos or DALL-E/Imagen for images
 
-export interface GenerationRequest {
+export interface GenerationRequest extends GenerationPreferences {
     type: 'video' | 'photo' | 'shorts' | 'text';
     platform: 'youtube' | 'tiktok' | 'facebook' | 'all';
     style: string;
     niche: string;
-    // Visual Branding
+    grokKey?: string;
+    title?: string;
+    description?: string;
+}
+
+export interface GenerationPreferences {
     font?: string;
     primaryColor?: string;
     backgroundStyle?: string;
@@ -20,11 +25,70 @@ export interface GenerationResult {
     fileSize?: string;
 }
 
+async function callGrokImagine(prompt: string, apiKey: string): Promise<string> {
+    try {
+        const res = await fetch('https://api.x.ai/v1/images/generations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "grok-2-vision-1212", // Or specific Grok Imagine model
+                prompt: prompt,
+                n: 1,
+                size: "1024x1024"
+            })
+        });
+
+        if (!res.ok) {
+            const err = await res.text();
+            throw new Error(`Grok API Error: ${res.status} - ${err}`);
+        }
+
+        const data = await res.json();
+        return data.data?.[0]?.url || '';
+    } catch (err) {
+        console.error("Grok Imagine Error:", err);
+        return '';
+    }
+}
+
 // Simulates asset generation pipeline (Video/Photo)
 export async function generateAsset(req: GenerationRequest): Promise<GenerationResult> {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     const timestamp = Date.now();
+    const isVideo = req.type === 'video' || req.type === 'shorts';
+
+    // If Grok key is provided, attempt to use it for images (Imagine)
+    if (req.grokKey && !isVideo) {
+        const prompt = `A high-quality ${req.style} ${req.niche} image for ${req.platform}. Topic: ${req.title}. Visual Style: ${req.backgroundStyle} background, ${req.primaryColor} accents.`;
+        const grokUrl = await callGrokImagine(prompt, req.grokKey);
+        if (grokUrl) {
+            return {
+                url: grokUrl,
+                thumbnailUrl: grokUrl,
+                resolution: '1024x1024',
+                fileSize: '1.5 MB'
+            };
+        }
+    }
+
+    // Video Logic (Grok Proxy Simulation)
+    if (req.grokKey && isVideo) {
+        console.log(`[GROK VIDEO] Simulating video generation with xAI for ${req.title}...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Placeholder for real xAI video endpoint when available
+        return {
+            url: `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4`,
+            thumbnailUrl: `https://picsum.photos/seed/${timestamp}/1280/720`,
+            duration: 60,
+            resolution: '1280x720',
+            fileSize: '15 MB'
+        };
+    }
+
+    // Fallback/Mock
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (req.type === 'video' || req.type === 'shorts') {
         const isYT = req.platform === 'youtube' || req.type === 'video';

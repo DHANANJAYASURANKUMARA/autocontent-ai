@@ -60,6 +60,7 @@ export interface SystemSettings {
     tiktokKey: string;
     facebookKey: string;
     geminiKey: string;
+    grokKey: string;
     contentTone: string;
     contentLength: 'short' | 'medium' | 'long';
     brandName: string;

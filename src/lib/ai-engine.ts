@@ -126,27 +126,21 @@ export async function generateContent(
     try {
         let text = '';
 
-        if (provider === 'gemini') {
-            const key = apiKey; // Use the passed key for Gemini as per existing contract
-            if (key) {
-                const genAI = new GoogleGenerativeAI(key);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                text = response.text();
-            }
-        } else if (provider === 'openai') {
-            if (prefs?.openaiKey) {
-                text = await callOpenAICompatible(prompt, prefs.openaiKey, 'https://api.openai.com/v1', 'gpt-3.5-turbo');
-            }
-        } else if (provider === 'custom') {
-            if (prefs?.customBaseUrl && (prefs?.customKey || prefs.customKey === '') && prefs?.customModel) {
-                text = await callOpenAICompatible(prompt, prefs.customKey, prefs.customBaseUrl, prefs.customModel);
-            }
+        // Default to Gemini for text generation as per user requirement
+        const geminiKey = apiKey;
+        if (geminiKey) {
+            const genAI = new GoogleGenerativeAI(geminiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            text = response.text();
+        } else if (provider === 'openai' && prefs?.openaiKey) {
+            text = await callOpenAICompatible(prompt, prefs.openaiKey, 'https://api.openai.com/v1', 'gpt-3.5-turbo');
+        } else if (provider === 'custom' && prefs?.customBaseUrl && prefs?.customKey) {
+            text = await callOpenAICompatible(prompt, prefs.customKey, prefs.customBaseUrl, prefs.customModel || 'gpt-3.5-turbo');
         }
 
         if (text) {
-            // Clean up text: remove markdown code blocks if present
             const cleanText = text.replace(/```json\n?|\n?```/g, '').trim();
             const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
 
@@ -158,7 +152,6 @@ export async function generateContent(
                         description: parsed.description || "",
                         script: parsed.script || parsed.text || "",
                         hashtags: parsed.hashtags || [],
-                        imageUrl: req.type === 'photo' || req.type === 'text' ? `https://picsum.photos/seed/${Math.random()}/1080/1080` : undefined
                     };
                 } catch (e) {
                     console.error("JSON Parse Error:", e);

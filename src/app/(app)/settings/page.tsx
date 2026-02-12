@@ -8,6 +8,7 @@ interface Settings {
     tiktokKey: string;
     facebookKey: string;
     geminiKey: string;
+    grokKey: string;
     contentTone: string;
     contentLength: 'short' | 'medium' | 'long';
     brandName: string;
@@ -32,6 +33,7 @@ export default function SettingsPage() {
         tiktokKey: '',
         facebookKey: '',
         geminiKey: '',
+        grokKey: '',
         contentTone: 'Professional & Engaging',
         contentLength: 'medium',
         brandName: 'AutoContent AI',
@@ -178,6 +180,18 @@ export default function SettingsPage() {
                                         <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Get a free key from <a href="https://aistudio.google.com/" target="_blank" style={{ color: 'var(--accent-primary)' }}>Google AI Studio</a></p>
                                     </div>
                                 )}
+
+                                <div className="fade-in" style={{ marginTop: 16 }}>
+                                    <label>xAI (Grok) API Key (for Visuals)</label>
+                                    <input
+                                        type="password"
+                                        className="input"
+                                        value={settings.grokKey}
+                                        onChange={e => setSettings({ ...settings, grokKey: e.target.value })}
+                                        placeholder="xai-..."
+                                    />
+                                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Used for Imagine (Images) and Grok-powered Videos. Get it from <a href="https://console.x.ai/" target="_blank" style={{ color: 'var(--accent-primary)' }}>xAI Console</a></p>
+                                </div>
 
                                 {settings.aiProvider === 'openai' && (
                                     <div className="fade-in">

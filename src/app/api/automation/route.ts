@@ -99,7 +99,10 @@ export async function POST(request: Request) {
                 niche,
                 font: settings.font,
                 primaryColor: settings.primaryColor,
-                backgroundStyle: settings.backgroundStyle
+                backgroundStyle: settings.backgroundStyle,
+                grokKey: settings.grokKey,
+                title: generated.title,
+                description: generated.description
             });
 
             const item = await store.addContent({

@@ -56,7 +56,10 @@ export async function POST(request: Request) {
                 niche,
                 font: settings.font,
                 primaryColor: settings.primaryColor,
-                backgroundStyle: settings.backgroundStyle
+                backgroundStyle: settings.backgroundStyle,
+                grokKey: settings.grokKey,
+                title: content.title,
+                description: content.description
             });
 
             return store.addContent({
