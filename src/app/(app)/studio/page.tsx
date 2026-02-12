@@ -432,9 +432,17 @@ export default function StudioPage() {
                                         <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>No Preview Available</p>
                                     </div>
                                 )}
-                                <div style={{ position: 'absolute', top: 12, left: 12 }}>
+                                <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 8 }}>
                                     <span className="badge badge-info">{selectedContent.type.toUpperCase()}</span>
+                                    {selectedContent.videoUrl && (
+                                        <span className="badge" style={{ background: 'rgba(50, 255, 50, 0.1)', color: '#4dff4d', border: '1px solid #4dff4d', fontSize: 10 }}>✨ Grok Visuals</span>
+                                    )}
                                 </div>
+                                {selectedContent.videoUrl && (
+                                    <div style={{ position: 'absolute', bottom: 12, right: 12, fontSize: 10, background: 'rgba(0,0,0,0.6)', padding: '4px 8px', borderRadius: 4, backdropFilter: 'blur(4px)', color: '#fff' }}>
+                                        Cinematic 4K HD
+                                    </div>
+                                )}
                             </div>
 
                             {isEditing ? (

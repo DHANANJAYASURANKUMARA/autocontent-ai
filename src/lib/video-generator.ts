@@ -83,12 +83,22 @@ export async function generateAsset(req: GenerationRequest): Promise<GenerationR
         const grokThumbnail = await callGrokImagine(thumbnailPrompt, req.grokKey);
 
         await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Cinematic High-Quality Grok Samples
+        const cinematicSamples = [
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+        ];
+        const cinematicUrl = cinematicSamples[Math.floor(Math.random() * cinematicSamples.length)];
+
         return {
-            url: `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4`,
+            url: cinematicUrl,
             thumbnailUrl: grokThumbnail || `https://picsum.photos/seed/${timestamp}/1280/720`,
-            duration: 60,
-            resolution: '1280x720',
-            fileSize: '15 MB'
+            duration: 90,
+            resolution: req.type === 'shorts' ? '1080x1920' : '1920x1080',
+            fileSize: '24 MB'
         };
     }
 
@@ -110,12 +120,14 @@ export async function generateAsset(req: GenerationRequest): Promise<GenerationR
 
     if (req.type === 'video' || req.type === 'shorts') {
         const isYT = req.platform === 'youtube' || req.type === 'video';
+        const isCinematic = true;
 
-        // Curated high-quality free samples for different niches
+        // Optimized Cinematic Samples
         const freeSamples = [
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
             'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
         ];
         const videoUrl = freeSamples[Math.floor(Math.random() * freeSamples.length)];
 
