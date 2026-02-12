@@ -177,12 +177,17 @@ class DataStore {
         });
     }
 
-    async updateContent(id: string, updates: Partial<ContentItem>) {
+    async updateContent(id: string, updates: Partial<Omit<ContentItem, 'id' | 'createdAt' | 'updatedAt'>>) {
         await this.ensureInitialized();
         const prisma = getPrisma();
         const data: any = { ...updates };
         if (updates.hashtags) data.hashtags = updates.hashtags.join(',');
         if (updates.publishedAt) data.publishedAt = updates.publishedAt ? new Date(updates.publishedAt) : undefined;
+
+        // Ensure we don't try to update fields that shouldn't be updated via this method
+        delete data.id;
+        delete data.createdAt;
+        delete data.updatedAt;
 
         await prisma.contentItem.update({ where: { id }, data });
     }

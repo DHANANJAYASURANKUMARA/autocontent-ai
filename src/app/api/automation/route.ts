@@ -3,6 +3,7 @@ import store from '@/lib/store';
 
 export const dynamic = 'force-dynamic';
 import { generateContent } from '@/lib/ai-engine';
+import { generateAsset } from '@/lib/video-generator';
 
 export async function GET() {
     const automation = await store.getAutomationConfig();
@@ -90,12 +91,25 @@ export async function POST(request: Request) {
                 customModel: settings.customModel,
             });
 
+            // Generate visual asset (video/photo) for the content
+            const asset = await generateAsset({
+                type: type as any,
+                platform: platform as any,
+                style: automation.style,
+                niche,
+                font: settings.font,
+                primaryColor: settings.primaryColor,
+                backgroundStyle: settings.backgroundStyle
+            });
+
             const item = await store.addContent({
                 title: generated.title,
                 description: generated.description,
                 script: generated.script,
                 hashtags: generated.hashtags,
-                imageUrl: generated.imageUrl || null,
+                imageUrl: asset.url,
+                videoUrl: (type === 'video' || type === 'shorts') ? asset.url : undefined,
+                thumbnailUrl: asset.thumbnailUrl,
                 niche,
                 style: automation.style,
                 platform,
