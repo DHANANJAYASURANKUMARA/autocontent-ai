@@ -562,55 +562,110 @@ ol {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
+  gap: 10px;
+  padding: 12px 28px;
   border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 600;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   white-space: nowrap;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.btn:active {
+  transform: scale(0.96);
 }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   color: white;
-  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+  box-shadow: 0 8px 16px -4px rgba(108, 92, 231, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.btn-primary:hover::after {
+  animation: shimmer 1.5s infinite;
+  opacity: 1;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+
+  100% {
+    transform: translateX(100%) rotate(45deg);
+  }
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(108, 92, 231, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -6px rgba(108, 92, 231, 0.6);
+  filter: brightness(1.1);
 }
 
 .btn-secondary {
   background: var(--bg-glass-strong);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
+  backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
   border-color: var(--accent-primary);
-  background: rgba(108, 92, 231, 0.1);
+  background: rgba(108, 92, 231, 0.12);
+  transform: translateY(-1px);
 }
 
 .btn-danger {
-  background: rgba(255, 71, 87, 0.15);
+  background: rgba(255, 71, 87, 0.12);
   color: var(--accent-red);
-  border: 1px solid rgba(255, 71, 87, 0.3);
+  border: 1px solid rgba(255, 71, 87, 0.2);
 }
 
 .btn-danger:hover {
-  background: rgba(255, 71, 87, 0.25);
+  background: rgba(255, 71, 87, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-info {
+  background: rgba(0, 210, 255, 0.12);
+  color: var(--accent-tertiary);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+}
+
+.btn-info:hover {
+  background: rgba(0, 210, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .btn-sm {
-  padding: 8px 16px;
+  padding: 8px 18px;
   font-size: 12px;
+  border-radius: var(--radius-sm);
 }
 
 .btn-lg {
-  padding: 16px 32px;
+  padding: 16px 36px;
   font-size: 16px;
+  border-radius: var(--radius-lg);
 }
 
 /* ---- Inputs ---- */

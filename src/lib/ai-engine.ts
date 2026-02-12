@@ -127,17 +127,22 @@ export async function generateContent(
         let text = '';
 
         // Default to Gemini for text generation as per user requirement
-        const geminiKey = apiKey;
+        const geminiKey = apiKey?.trim();
         if (geminiKey) {
+            console.log(`[AI-ENGINE] Attempting Gemini generation for ${req.type}...`);
             const genAI = new GoogleGenerativeAI(geminiKey);
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const result = await model.generateContent(prompt);
             const response = await result.response;
             text = response.text();
         } else if (provider === 'openai' && prefs?.openaiKey) {
-            text = await callOpenAICompatible(prompt, prefs.openaiKey, 'https://api.openai.com/v1', 'gpt-3.5-turbo');
-        } else if (provider === 'custom' && prefs?.customBaseUrl && prefs?.customKey) {
-            text = await callOpenAICompatible(prompt, prefs.customKey, prefs.customBaseUrl, prefs.customModel || 'gpt-3.5-turbo');
+            const ok = prefs.openaiKey.trim();
+            console.log(`[AI-ENGINE] Attempting OpenAI fallback for ${req.type}...`);
+            text = await callOpenAICompatible(prompt, ok, 'https://api.openai.com/v1', 'gpt-3.5-turbo');
+        } else if (provider === 'custom' && prefs?.customBaseUrl && (prefs?.customKey !== undefined)) {
+            const ck = prefs.customKey.trim();
+            console.log(`[AI-ENGINE] Attempting Custom fallback (${prefs.customBaseUrl}) for ${req.type}...`);
+            text = await callOpenAICompatible(prompt, ck, prefs.customBaseUrl, prefs.customModel || 'gpt-3.5-turbo');
         }
 
         if (text) {
@@ -158,8 +163,8 @@ export async function generateContent(
                 }
             }
         }
-    } catch (error) {
-        console.error("Generation Error:", error);
+    } catch (error: any) {
+        console.error(`[AI-ENGINE] Fatal failure for ${req.type}:`, error.message || error);
     }
 
     // --- Fallback ---

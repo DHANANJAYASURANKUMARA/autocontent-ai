@@ -112,22 +112,27 @@ export default function StudioPage() {
             const data = await res.json();
 
             if (!res.ok) {
-                setStatus({ type: 'error', message: data.error || 'Generation failed' });
-                setTimeout(() => setStatus({ type: 'idle', message: '' }), 5000);
+                const errMsg = data.error || 'Generation failed at the server level';
+                setStatus({ type: 'error', message: errMsg });
+                console.error('[STUDIO] POST failed:', data);
+                setTimeout(() => setStatus({ type: 'idle', message: '' }), 10000);
             } else {
-                if (Array.isArray(data)) {
+                if (Array.isArray(data) && data.length > 0) {
                     setGenerated(prev => [...data, ...prev]);
                     setSelectedContent(data[0]);
                     setStatus({ type: 'success', message: 'Content generated successfully!' });
                     setTimeout(() => setStatus({ type: 'idle', message: '' }), 3000);
                 } else {
-                    throw new Error('Invalid response from server');
+                    throw new Error('Server returned empty result. Check your API keys in Settings.');
                 }
             }
         } catch (err: any) {
-            console.error('Generation failed:', err);
-            setStatus({ type: 'error', message: err.message || 'Network error occurred' });
-            setTimeout(() => setStatus({ type: 'idle', message: '' }), 5000);
+            console.error('[STUDIO] Generation error:', err);
+            const friendlyMsg = err.message?.includes('Unexpected token')
+                ? 'Server Error: Invalid response format. Possible timeout or API failure.'
+                : err.message || 'Network error occurred';
+            setStatus({ type: 'error', message: friendlyMsg });
+            setTimeout(() => setStatus({ type: 'idle', message: '' }), 10000);
         } finally {
             setIsGenerating(false);
             setPipelineStage(-1);

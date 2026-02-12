@@ -48,6 +48,7 @@ export async function POST(request: Request) {
         );
 
         const items = await Promise.all(results.map(async (content) => {
+            console.log(`[CONTENT-API] Processing item: ${content.title}`);
             // Generate visual asset (video/photo) for the content
             const asset = await generateAsset({
                 type: type as any,
@@ -75,10 +76,11 @@ export async function POST(request: Request) {
             } as any);
         }));
 
+        console.log(`[CONTENT-API] Successfully generated ${items.length} items.`);
         return NextResponse.json(items);
-    } catch (error) {
-        console.error('Content Generation Route Error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    } catch (error: any) {
+        console.error('Content Generation Route Error:', error.message || error);
+        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
     }
 }
 

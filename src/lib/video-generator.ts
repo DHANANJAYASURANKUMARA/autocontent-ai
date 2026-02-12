@@ -29,9 +29,10 @@ async function callGrokImagine(prompt: string, apiKey: string): Promise<string> 
     try {
         const res = await fetch('https://api.x.ai/v1/images/generations', {
             method: 'POST',
+            signal: AbortSignal.timeout(10000), // 10s timeout
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${apiKey.trim()}`
             },
             body: JSON.stringify({
                 model: "grok-2-vision-1212", // Or specific Grok Imagine model
@@ -91,15 +92,35 @@ export async function generateAsset(req: GenerationRequest): Promise<GenerationR
         };
     }
 
+    // If no Grok key, use Pollinations for "Free" high-quality images
+    if (!req.grokKey && !isVideo) {
+        console.log(`[ASSET-GEN] Using Pollinations AI for free image generation...`);
+        const pPrompt = encodeURIComponent(`high quality ${req.style} ${req.niche} photo for ${req.platform}, topic: ${req.title}, cinematic lighting, 4k`);
+        const pollUrl = `https://image.pollinations.ai/prompt/${pPrompt}?width=1024&height=1024&nologo=true&seed=${timestamp}`;
+        return {
+            url: pollUrl,
+            thumbnailUrl: pollUrl,
+            resolution: '1024x1024',
+            fileSize: '0.8 MB'
+        };
+    }
+
     // Fallback/Mock
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     if (req.type === 'video' || req.type === 'shorts') {
         const isYT = req.platform === 'youtube' || req.type === 'video';
+
+        // Curated high-quality free samples for different niches
+        const freeSamples = [
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+        ];
+        const videoUrl = freeSamples[Math.floor(Math.random() * freeSamples.length)];
+
         return {
-            // Use a valid sample video URL so it plays in the UI if needed
-            url: `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4`,
-            // Use Picsum for thumbnails (16:9 or 9:16)
+            url: videoUrl,
             thumbnailUrl: isYT
                 ? `https://picsum.photos/seed/${timestamp}/1920/1080`
                 : `https://picsum.photos/seed/${timestamp}/1080/1920`,
