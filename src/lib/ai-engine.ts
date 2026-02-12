@@ -8,6 +8,8 @@ export interface GenerateRequest {
     platform: 'youtube' | 'tiktok' | 'facebook' | 'all';
     type: 'video' | 'photo' | 'shorts' | 'text';
     customTopic?: string;
+    isManual?: boolean;
+    manualPrompt?: string;
 }
 
 export interface ContentPreferences {
@@ -98,7 +100,7 @@ export async function generateContent(
         long: "comprehensive and deep (2-3 minutes / long-form article)"
     }[length];
 
-    const prompt = `
+    const boilerplate = `
         Create viral content for a ${req.platform} ${req.type}.
         Brand Name: ${brand}
         Language: ${lang}
@@ -122,6 +124,8 @@ export async function generateContent(
         - hashtags: Array of 5-8 hashtags.
         - imageDescription: (Optional) If it's a photo, describe what should be in the image.
     `;
+
+    const prompt = req.isManual && req.manualPrompt ? req.manualPrompt : boilerplate;
 
     try {
         let text = '';
@@ -193,3 +197,34 @@ export async function generateBatchContent(
 export const NICHES = ['Technology', 'Motivation', 'Finance', 'Gaming', 'Education', 'Fitness', 'Comedy', 'Cooking', 'Travel', 'Science'];
 export const STYLES = ['educational', 'entertaining', 'tutorial', 'motivational', 'storytelling'];
 export const TYPES = ['video', 'photo', 'shorts', 'text'];
+
+export function generateRandomTopic(niche: string, style: string): string {
+    const hooks: Record<string, string[]> = {
+        educational: ['The Truth About', 'How to Master', 'The Secret Science of', 'Why You Should Care About'],
+        entertaining: ['10 Wild Facts About', 'The Most Insane', 'You Wont Believe This', 'Reacting to'],
+        tutorial: ['Step-by-Step Guide to', 'Build Your Own', 'Complete Roadmap for', 'Quick Hack for'],
+        motivational: ['The Comeback Story of', 'Why Giving Up Isnt an Option for', 'The Daily Routine for', 'Success in'],
+        storytelling: ['The Day I Discovered', 'A Journey Through', 'The Untold History of', 'Life Lessons from']
+    };
+
+    const subjects: Record<string, string[]> = {
+        Technology: ['AI Revolution', 'Space Travel', 'Quantum Computing', 'Future Cities', 'Cyberpunk Lifestyle'],
+        Motivation: ['Daily Discipline', 'Mindset Shifts', 'Overcoming Fear', 'Productivity Secrets', 'Mental Toughness'],
+        Finance: ['Stock Market Trends', 'Cryptocurrency Gems', 'Personal Wealth', 'Passive Income', 'Modern Trading'],
+        Gaming: ['Next Gen Consoles', 'Competitive Esports', 'Retro Classics', 'Indie Hidden Gems', 'Speedrunning Logic'],
+        Education: ['Accelerated Learning', 'Mind Mapping', 'History of Ideas', 'Critical Thinking', 'Global Cultures'],
+        Fitness: ['HIIT Training', 'Biohacking', 'Calisthenics Mastery', 'Nutritional Science', 'Recovery Protocols'],
+        Comedy: ['Office Struggles', 'Modern Dating', 'Tech Support Nightmares', 'Social Media Trolls', 'Dad Jokes'],
+        Cooking: ['Molecular Gastronomy', 'Street Food Tour', 'Vegan Masterclass', 'Gourmet on a Budget', 'Grandmas Secrets'],
+        Travel: ['Hidden Paradises', 'Digital Nomad Life', 'Sustainable Safaris', 'Backpacking Europe', 'Luxury Islands'],
+        Science: ['DNA Editing', 'The Multiverse', 'Climate Solutions', 'Microbiology', 'Dark Matter Secrets']
+    };
+
+    const activeHooks = hooks[style] || hooks['educational'];
+    const activeSubjects = subjects[niche] || subjects['Technology'];
+
+    const hook = activeHooks[Math.floor(Math.random() * activeHooks.length)];
+    const subject = activeSubjects[Math.floor(Math.random() * activeSubjects.length)];
+
+    return `${hook} ${subject}`;
+}

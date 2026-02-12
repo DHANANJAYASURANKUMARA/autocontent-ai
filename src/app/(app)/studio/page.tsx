@@ -40,6 +40,8 @@ export default function StudioPage() {
     const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error', message: string }>({ type: 'idle', message: '' });
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({ title: '', description: '', script: '' });
+    const [creationMode, setCreationMode] = useState<'auto' | 'manual'>('auto');
+    const [manualPrompt, setManualPrompt] = useState('');
 
     useEffect(() => {
         fetchHistory();
@@ -106,7 +108,16 @@ export default function StudioPage() {
             const res = await fetch('/api/content', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ niche, style, platform, type, customTopic: customTopic || undefined, count: batchCount }),
+                body: JSON.stringify({
+                    niche,
+                    style,
+                    platform,
+                    type,
+                    customTopic: customTopic || undefined,
+                    count: batchCount,
+                    isManual: creationMode === 'manual',
+                    manualPrompt: creationMode === 'manual' ? manualPrompt : undefined
+                }),
             });
 
             const data = await res.json();
@@ -244,6 +255,27 @@ export default function StudioPage() {
         }
     }
 
+    function handleMagicTopic() {
+        const hooks = ['The Secret to', 'How I Built', 'The Future of', '10 Insane Facts about', 'Reacting to', 'Everything about'];
+        const topics: Record<string, string[]> = {
+            Technology: ['AI Tools', 'Quantum Bits', 'Cybersecurity', 'Smart Gadgets'],
+            Motivation: ['Daily Habits', 'Morning Routines', 'Mental Hacks', 'Discipline'],
+            Finance: ['Crypto Trends', 'Stock Markets', 'Budgeting', 'Wealth'],
+            Gaming: ['E-sports', 'Retro Games', 'Hidden Levels', 'Speedrunning'],
+            Education: ['Speed Reading', 'Brain Hacks', 'Memory Palace', 'Focus'],
+            Fitness: ['HIIT', 'Biohacking', 'Calisthenics', 'Yoga'],
+            Comedy: ['Office Life', 'Dating', 'Tech Support', 'Social Media'],
+            Cooking: ['Street Food', 'Secret Spices', 'Budget Meals', 'Vegan Hacks'],
+            Travel: ['Hidden Gems', 'Solo Trips', 'Backpacking', 'Island Life'],
+            Science: ['DNA', 'Space', 'Microbes', 'Physics']
+        };
+
+        const activeTopics = topics[niche] || ['Viral Trends'];
+        const h = hooks[Math.floor(Math.random() * hooks.length)];
+        const t = activeTopics[Math.floor(Math.random() * activeTopics.length)];
+        setCustomTopic(`${h} ${t}`);
+    }
+
     return (
         <div>
             <div className="page-header">
@@ -269,49 +301,93 @@ export default function StudioPage() {
 
             <div className="two-col">
                 <div className="card">
-                    <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>⚡ Create Content</h3>
+                    <div style={{ display: 'flex', gap: 12, marginBottom: 20, borderBottom: '1px solid var(--border-color)', paddingBottom: 12 }}>
+                        <button
+                            className={`nav-item ${creationMode === 'auto' ? 'active' : ''}`}
+                            style={{ flex: 1, justifyContent: 'center', background: 'transparent', border: 'none' }}
+                            onClick={() => setCreationMode('auto')}
+                        >
+                            🤖 Auto Mode
+                        </button>
+                        <button
+                            className={`nav-item ${creationMode === 'manual' ? 'active' : ''}`}
+                            style={{ flex: 1, justifyContent: 'center', background: 'transparent', border: 'none' }}
+                            onClick={() => setCreationMode('manual')}
+                        >
+                            ✍️ Manual Mode
+                        </button>
+                    </div>
 
-                    <div className="input-group">
-                        <label>Content Type</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                            {TYPES.map(t => (
-                                <button
-                                    key={t.value}
-                                    className={`btn ${type === t.value ? 'btn-primary' : 'btn-secondary'}`}
-                                    onClick={() => setType(t.value)}
-                                >
-                                    {t.label}
-                                </button>
-                            ))}
+                    {creationMode === 'auto' ? (
+                        <div className="fade-in">
+                            <div className="input-group">
+                                <label>Content Type</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                    {TYPES.map(t => (
+                                        <button
+                                            key={t.value}
+                                            className={`btn ${type === t.value ? 'btn-primary' : 'btn-secondary'}`}
+                                            onClick={() => setType(t.value)}
+                                        >
+                                            {t.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="input-group">
+                                <label>Target Platform</label>
+                                <select className="input" value={platform} onChange={e => setPlatform(e.target.value)}>
+                                    <option value="all">All Platforms</option>
+                                    <option value="youtube">YouTube</option>
+                                    <option value="tiktok">TikTok</option>
+                                    <option value="facebook">Facebook</option>
+                                </select>
+                            </div>
+
+                            <div className="input-group">
+                                <label>Niche & Style</label>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <select className="input" style={{ flex: 1 }} value={niche} onChange={e => setNiche(e.target.value)}>
+                                        {NICHES.map(n => <option key={n} value={n}>{n}</option>)}
+                                    </select>
+                                    <select className="input" style={{ flex: 1 }} value={style} onChange={e => setStyle(e.target.value)}>
+                                        {STYLES.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="input-group">
+                                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    Topic
+                                    <button className="btn btn-sm btn-secondary" style={{ padding: '2px 8px' }} onClick={handleMagicTopic}>🎲 Magic</button>
+                                </label>
+                                <input className="input" placeholder="AI chooses if empty..." value={customTopic} onChange={e => setCustomTopic(e.target.value)} />
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="input-group">
-                        <label>Target Platform</label>
-                        <select className="input" value={platform} onChange={e => setPlatform(e.target.value)}>
-                            <option value="all">All Platforms</option>
-                            <option value="youtube">YouTube</option>
-                            <option value="tiktok">TikTok</option>
-                            <option value="facebook">Facebook</option>
-                        </select>
-                    </div>
-
-                    <div className="input-group">
-                        <label>Niche & Style</label>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                            <select className="input" style={{ flex: 1 }} value={niche} onChange={e => setNiche(e.target.value)}>
-                                {NICHES.map(n => <option key={n} value={n}>{n}</option>)}
-                            </select>
-                            <select className="input" style={{ flex: 1 }} value={style} onChange={e => setStyle(e.target.value)}>
-                                {STYLES.map(s => <option key={s} value={s}>{s}</option>)}
-                            </select>
+                    ) : (
+                        <div className="fade-in">
+                            <div className="input-group">
+                                <label>Master Prompt</label>
+                                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+                                    Tell the AI exactly what you want it to generate. Include details about title, description, and script format.
+                                </p>
+                                <textarea
+                                    className="input"
+                                    style={{ height: 200 }}
+                                    placeholder="Write a viral TikTok script about why every small business needs AI in 2024. Use a fast-paced, high-energy tone. Include 5 hashtags."
+                                    value={manualPrompt}
+                                    onChange={e => setManualPrompt(e.target.value)}
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label>Content Type</label>
+                                <select className="input" value={type} onChange={e => setType(e.target.value)}>
+                                    {TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                </select>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="input-group">
-                        <label>Topic</label>
-                        <input className="input" placeholder="AI chooses if empty..." value={customTopic} onChange={e => setCustomTopic(e.target.value)} />
-                    </div>
+                    )}
 
                     <button className="btn btn-primary btn-lg" style={{ width: '100%', marginTop: 8 }} onClick={handleGenerate} disabled={isGenerating}>
                         {isGenerating ? 'Generating...' : `🚀 Generate ${type.toUpperCase()}`}

@@ -17,7 +17,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
-        const { niche, style, platform, type, customTopic, count = 1 } = await request.json();
+        const { niche, style, platform, type, customTopic, count = 1, isManual, manualPrompt } = await request.json();
 
         if (!niche || !style || !platform || !type) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
         // Pass all provider and visual settings to AI Engine
         const results = await generateBatchContent(
-            { niche, style, platform, type, customTopic },
+            { niche, style, platform, type, customTopic, isManual, manualPrompt },
             count,
             settings.geminiKey,
             {
