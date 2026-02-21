@@ -1394,3 +1394,140 @@ select.input {
   background: var(--bg-card-hover);
   border-color: rgba(108, 92, 231, 0.2) !important;
 }
+/* ---- Cricket Live App ---- */
+.cricket-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+}
+
+.cricket-hero h1 {
+  font-size: 2.1rem;
+  margin-bottom: 8px;
+}
+
+.cricket-hero p {
+  color: var(--text-secondary);
+}
+
+.eyebrow {
+  color: var(--accent-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.tab-btn {
+  border: 1px solid var(--border-color);
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+}
+
+.tab-btn.active,
+.tab-btn:hover {
+  border-color: var(--accent-primary);
+  color: #fff;
+  background: rgba(108, 92, 231, 0.2);
+}
+
+.matches-grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.match-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+
+.card-top-row,
+.score-row,
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-top-row {
+  margin-bottom: 10px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.status-pill {
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.status-pill.live {
+  background: rgba(255, 71, 87, 0.2);
+  color: #ff7c88;
+}
+
+.status-pill.upcoming {
+  background: rgba(0, 210, 255, 0.18);
+  color: #78e5ff;
+}
+
+.status-pill.completed {
+  background: rgba(0, 230, 118, 0.2);
+  color: #5cf3a5;
+}
+
+.meta,
+.innings,
+.state-text {
+  color: var(--text-secondary);
+}
+
+.score-row {
+  margin-top: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.score-block {
+  text-align: right;
+}
+
+.score-block span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.innings {
+  margin-top: 12px;
+  font-weight: 500;
+}
+
+.card-footer {
+  margin-top: 14px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.state-text {
+  margin-top: 18px;
+}
+
+.state-text.error {
+  color: #ff8c98;
+}
